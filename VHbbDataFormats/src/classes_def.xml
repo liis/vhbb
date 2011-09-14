@@ -10,6 +10,7 @@
 <class name="VHbbEventAuxInfo::ParticleMCInfo"/>
 <class name="std::vector<VHbbEventAuxInfo::ParticleMCInfo>"/>
 <class name="VHbbEventAuxInfo::PrimaryVertexInfo"/>
+<class name="VHbbEventAuxInfo::TriggerInfo"/>
 <class name="VHbbEvent::DiElectronInfo"/>
 
 <class name="VHbbEvent::DiMuonInfo"/>
@@ -32,7 +33,6 @@
 <class name="std::vector<VHbbEvent::SimpleJet>"/>
 <class name="std::vector<VHbbEvent::TauInfo>"/>
 <class name="std::vector<TLorentzVector>"/>
-<class name="std::map <int, unsigned int>"/>
 
 <class name="VHbbCandidate"/>
 <class name="std::vector<VHbbCandidate>"/>
