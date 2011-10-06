@@ -1,9 +1,13 @@
+                                                                     
+                                                                     
+                                                                     
+                                             
 #import configurations
 import FWCore.ParameterSet.Config as cms
 
 import os 
 
-isMC = True
+isMC = 'true'
 
 # define the process
 process = cms.Process("VH")
@@ -19,18 +23,18 @@ from PhysicsTools.PatAlgos.tools.cmsswVersionTools import *
 process.load("Configuration.StandardSequences.GeometryDB_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 # source
-# on lxbuild151
-process.source = cms.Source("PoolSource",fileNames=cms.untracked.vstring("file:/tmp/tboccali/trigger.root"))
-#process.source = cms.Source("PoolSource",fileNames=cms.untracked.vstring("file:/build1/tboccali/7C74874C-CA8E-E011-9782-001D09F25401.root"))
+
+process.source = cms.Source("PoolSource",fileNames=cms.untracked.vstring("file:/tmp/arizzi/trigger.root"))
+
 #process.source = cms.Source("PoolSource",fileNames=cms.untracked.vstring("/store/relval/CMSSW_4_2_3/RelValTTbar/GEN-SIM-RECO/MC_42_V12-v2/0066/3026A5BD-D97B-E011-A9D7-001A92811736.root"))
 
 
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
-if isMC == False :
+if isMC == 'false' :
 	process.GlobalTag.globaltag = cms.string('GR_R_42_V13::All')
 else :
 	process.GlobalTag.globaltag = cms.string('START42_V12::All')
@@ -38,20 +42,10 @@ else :
 process.out1 = cms.OutputModule(
     'PoolOutputModule',
     fileName       = cms.untracked.string('PAT.edm.root'),
-    outputCommands = cms.untracked.vstring(
-	'drop *',
-					   'keep *_HbbAnalyzerNew_*_*',
-					   'keep *_hbbCandidates_*_*',
-					   'keep PileupSummaryInfo_*_*_*',
-					   'keep edmTriggerResults_*_*_*',
-					   ),
+    outputCommands = cms.untracked.vstring('drop *','keep *_HbbAnalyzerNew_*_*'),
     dropMetaData = cms.untracked.string('ALL'),
-    splitLevel = cms.untracked.int32(0),
-    SelectEvents = cms.untracked.PSet(
-        SelectEvents = cms.vstring('candidates')
+    splitLevel = cms.untracked.int32(0)
     )
-    
-)
 
 
 process.out = cms.OutputModule(
@@ -73,18 +67,8 @@ from PhysicsTools.PatAlgos.tools.coreTools import *
 #removeAllPATObjectsBut(process, ['Muons'])
 #removeSpecificPATObjects(process, ['Electrons', 'Muons', 'Taus'])
 
-if isMC == False :
+if isMC == 'false' :
 	removeMCMatching(process, ['All'])
-        RunOnData()
-        process.makePatMuons.remove(process.muonMatch)
-        process.makePatTaus.remove(process.tauMatch)
-        process.makePatTaus.remove(process.tauGenJets)
-        process.makePatTaus.remove(process.tauGenJetsSelectorAllHadrons)
-        process.makePatTaus.remove(process.tauGenJetMatch)
-        process.makePatPhotons.remove(process.photonMatch)
-        process.makePatJets.remove(process.patJetPartonMatch)
-        process.makePatJets.remove(process.patJetGenJetMatch)
-        process.makePatJets.remove(process.patJetFlavourId)
 
 # add the trigger information to the configuration
 from PhysicsTools.PatAlgos.tools.trigTools import *
@@ -96,7 +80,7 @@ from PhysicsTools.PatAlgos.patEventContent_cff import patTriggerEventContent
 process.load('CommonTools.ParticleFlow.PF2PAT_cff')
 from PhysicsTools.PatAlgos.tools.pfTools import *
 
-if isMC == False :
+if isMC == 'false' :
 	usePF2PAT(process,runPF2PAT=False,jetAlgo='AK5',runOnMC=False,postfix='')
 else :
 	usePF2PAT(process,runPF2PAT=False,jetAlgo='AK5',runOnMC=True,postfix='')
@@ -378,25 +362,23 @@ process.goodPatJetsAK5PF = cms.EDFilter("PFJetIDSelectionFunctorFilter",
                            filterParams = pfJetIDSelector.clone(), src = cms.InputTag("selectedPatJetsAK5PF") )
 
 process.HbbAnalyzerNew = cms.EDProducer("HbbAnalyzerNew",
-    runOnMC = cms.bool(isMC),
-    electronTag = cms.InputTag("selectedPatElectrons"),
-    hltResultsTag = cms.InputTag("TriggerResults::HLT"),
-#    tauTag = cms.InputTag("cleanPatTaus"),
-    tauTag = cms.InputTag("patTaus"),
-    muonTag = cms.InputTag("selectedPatMuons"),
-    jetTag = cms.InputTag("selectedPatJetsCAPF"),
-    subjetTag = cms.InputTag("selectedPatJetssubCAPF"),
-##    jetTag = cms.InputTag("selectedPatJetsCACalo"),
-    simplejet1Tag = cms.InputTag("selectedPatJets"),
-###					    simplejet1Tag = cms.InputTag("selectedPatJetsAK7PF"),
-    simplejet2Tag = cms.InputTag("goodPatJetsAK5PF"),
-    simplejet3Tag = cms.InputTag("selectedPatJetsAK7Calo"),
-    simplejet4Tag = cms.InputTag("selectedPatJetsAK7PF"),
-    photonTag = cms.InputTag("selectedPatPhotons"),
-    metTag = cms.InputTag("patMETs"),
-    dimuTag = cms.InputTag("dimuons"),
-    dielecTag = cms.InputTag("dielectrons"),
-    verbose = cms.untracked.bool(True)
+    runOnMC = cms.bool(True),
+    electronTag = cms.untracked.InputTag("selectedPatElectrons"),
+    hltResultsTag = cms.untracked.InputTag("TriggerResults::HLT0"),
+#    tauTag = cms.untracked.InputTag("cleanPatTaus"),
+    tauTag = cms.untracked.InputTag("patTaus"),
+    muonTag = cms.untracked.InputTag("selectedPatMuons"),
+    jetTag = cms.untracked.InputTag("selectedPatJetsCAPF"),
+    subjetTag = cms.untracked.InputTag("selectedPatJetssubCAPF"),
+##    jetTag = cms.untracked.InputTag("selectedPatJetsCACalo"),
+    simplejet1Tag = cms.untracked.InputTag("selectedPatJets"),
+    simplejet2Tag = cms.untracked.InputTag("goodPatJetsAK5PF"),
+    simplejet3Tag = cms.untracked.InputTag("selectedPatJetsAK7Calo"),
+    simplejet4Tag = cms.untracked.InputTag("selectedPatJetsAK7PF"),
+    photonTag = cms.untracked.InputTag("selectedPatPhotons"),
+    metTag = cms.untracked.InputTag("patMETs"),
+    dimuTag = cms.untracked.InputTag("dimuons"),
+    dielecTag = cms.untracked.InputTag("dielectrons")
 )
 
 process.dimuons = cms.EDProducer("CandViewShallowCloneCombiner",
@@ -411,13 +393,14 @@ process.dielectrons = cms.EDProducer("CandViewShallowCloneCombiner",
     decay = cms.string('selectedPatElectrons@+ selectedPatElectrons@-')
 )
 
-#process.Tracer = cms.Service("Tracer")
-
+process.TFileService = cms.Service("TFileService",
+    fileName = cms.string('PatHistos3.root')
+)
 
 process.load("VHbbAnalysis.HbbAnalyzer.simpleEleIdSequence_cff")
 process.patElectronIDs = cms.Sequence(process.simpleEleIdSequence)
 
-if isMC == False :
+if isMC == 'false' :
 	process.makePatElectrons = cms.Sequence(process.patElectronIDs*process.patElectronIsolation*process.patElectrons)
 else :
 	process.makePatElectrons = cms.Sequence(process.patElectronIDs*process.patElectronIsolation*process.electronMatch*process.patElectrons)
@@ -444,18 +427,8 @@ process.patElectrons.electronIDSources = cms.PSet(
 
 
 
-
-process.hbbCandidates = cms.EDFilter("HbbCandidateFinder",
-				       VHbbEventLabel = cms.InputTag(""),
-				       verbose = cms.bool(True) ,
-				       jetPtThreshold = cms.double(30.),
-				       useHighestPtHiggs=cms.bool(False),
-             			       actAsAFilter = cms.bool(False)
-				      )
-
-
 # drop the meta data for dropped data
-#process.out.dropMetaData = cms.string("DROPPED")
+#process.out.dropMetaData = cms.untracked.string("DROPPED")
 
 #process.out.fileName = '/tigress-hsm/dlopes/PatEDM.root'
 
@@ -463,9 +436,8 @@ process.hbbCandidates = cms.EDFilter("HbbCandidateFinder",
 # define path 'p'
 process.p = cms.Path(
 #process.genJetParticles*
-                     process.goodOfflinePrimaryVertices*
+                     process.goodOfflinePrimaryVertices* 
                      process.PF2PAT*
-                     process.makePatElectrons*
                      process.ak5CaloJets*
                      process.ak7CaloJets*
 #                     process.ak5GenJets*
@@ -482,20 +454,13 @@ process.p = cms.Path(
                      process.CAsubJetsProducer*
                      process.patDefaultSequence*
                      process.patPF2PATSequence* # added with usePF2PAT
-                     process.patCandidates*
                      process.dimuons*
                      process.dielectrons*
                      process.goodPatJetsAK5PF*
                      process.HbbAnalyzerNew
                      )
 
-process.candidates = cms.Path(process.hbbCandidates)
-
-
-process.options = cms.untracked.PSet( Rethrow = cms.untracked.vstring('ProductNotFound') )
 
 process.e = cms.EndPath(process.out1)
-process.schedule = cms.Schedule(process.p, process.candidates, process.e)
-
 
 #

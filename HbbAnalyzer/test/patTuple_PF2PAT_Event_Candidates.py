@@ -1,4 +1,3 @@
-
 #import configurations
 import FWCore.ParameterSet.Config as cms
 
@@ -39,19 +38,9 @@ else :
 process.out1 = cms.OutputModule(
     'PoolOutputModule',
     fileName       = cms.untracked.string('PAT.edm.root'),
-    outputCommands = cms.untracked.vstring(
-	'drop *',
-					   'keep *_HbbAnalyzerNew_*_*',
-					   'keep *_hbbCandidates_*_*',
-					   'keep PileupSummaryInfo_*_*_*',
-					   'keep edmTriggerResults_*_*_*',
-					   ),
+    outputCommands = cms.untracked.vstring('drop *','keep *_HbbAnalyzerNew_*_*', 'keep *_hbbCandidates_*_*'),
     dropMetaData = cms.untracked.string('ALL'),
-    splitLevel = cms.untracked.int32(0),
-        SelectEvents = cms.untracked.PSet(
-        SelectEvents = cms.vstring('candidates')
-    )
-
+    splitLevel = cms.untracked.int32(0)
     )
 
 
@@ -76,16 +65,6 @@ from PhysicsTools.PatAlgos.tools.coreTools import *
 
 if isMC == False :
 	removeMCMatching(process, ['All'])
-        RunOnData()
-        process.makePatMuons.remove(process.muonMatch)
-        process.makePatTaus.remove(process.tauMatch)
-        process.makePatTaus.remove(process.tauGenJets)
-        process.makePatTaus.remove(process.tauGenJetsSelectorAllHadrons)
-        process.makePatTaus.remove(process.tauGenJetMatch)
-        process.makePatPhotons.remove(process.photonMatch)
-        process.makePatJets.remove(process.patJetPartonMatch)
-        process.makePatJets.remove(process.patJetGenJetMatch)
-        process.makePatJets.remove(process.patJetFlavourId)
 
 # add the trigger information to the configuration
 from PhysicsTools.PatAlgos.tools.trigTools import *
@@ -381,7 +360,7 @@ process.goodPatJetsAK5PF = cms.EDFilter("PFJetIDSelectionFunctorFilter",
 process.HbbAnalyzerNew = cms.EDProducer("HbbAnalyzerNew",
     runOnMC = cms.bool(isMC),
     electronTag = cms.InputTag("selectedPatElectrons"),
-    hltResultsTag = cms.InputTag("TriggerResults::HLT"),
+    hltResultsTag = cms.InputTag("TriggerResults::HLT1"),
 #    tauTag = cms.InputTag("cleanPatTaus"),
     tauTag = cms.InputTag("patTaus"),
     muonTag = cms.InputTag("selectedPatMuons"),
@@ -445,12 +424,10 @@ process.patElectrons.electronIDSources = cms.PSet(
 
 
 
-process.hbbCandidates = cms.EDFilter("HbbCandidateFinder",
+process.hbbCandidates = cms.EDProducer("HbbCandidateFinder",
 				       VHbbEventLabel = cms.InputTag(""),
 				       verbose = cms.bool(True) ,
-				       jetPtThreshold = cms.double(30.),
-				       useHighestPtHiggs=cms.bool(False),
-              			       actAsAFilter = cms.bool(False)
+				       jetPtThreshold = cms.double(30.)
 				      )
 
 
@@ -486,18 +463,11 @@ process.p = cms.Path(
                      process.dimuons*
                      process.dielectrons*
                      process.goodPatJetsAK5PF*
-                     process.HbbAnalyzerNew
+                     process.HbbAnalyzerNew*
+		     process.hbbCandidates
                      )
 
 
-process.candidates = cms.Path(process.hbbCandidates)
-
-
-process.options = cms.untracked.PSet( Rethrow = cms.untracked.vstring('ProductNotFound') )
-
 process.e = cms.EndPath(process.out1)
-
-
-process.schedule = cms.Schedule(process.p, process.candidates, process.e)
 
 #
