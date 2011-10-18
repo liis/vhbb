@@ -3,7 +3,6 @@
 
 #include <TLorentzVector.h>
 #include <TVector2.h>
-#include "Math/SMatrix.h"
 #include <vector>
 #include<map>
 class VHbbEventAuxInfo{
@@ -14,7 +13,6 @@ class VHbbEventAuxInfo{
   public:
     PrimaryVertexInfo() : nVertices (-99){}
     TVector3 firstPVInPT2,firstPVInProb;
-    ROOT::Math::SMatrix<double, 3, 3, ROOT::Math::MatRepSym<double, 3> > efirstPVInPT2,efirstPVInProb;
     int nVertices;
   };
 
