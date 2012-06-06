@@ -120,8 +120,7 @@ void HbbCandidateFinderAlgo::run (const VHbbEvent* event, std::vector<VHbbCandid
   VHbbEvent::HardJet fatj1;
   std::vector<VHbbEvent::SimpleJet> subJetsout;
   std::vector<VHbbEvent::SimpleJet> addJetsFat;
-  // foundHardJets= findFatJet(event->hardJets,event->subJets,event->filterJets,fatj1,subJetsout, event->simpleJets2, addJetsFat, mu, ele) ;
-  foundHardJets= findFatJet(event->hardJets,event->subJets,event->filterJets,fatj1,subJetsout, event->simpleJets2, addJetsFat, event->muInfo, event->eleInfo) ;
+  foundHardJets= findFatJet(event->hardJets,event->subJets,event->filterJets,fatj1,subJetsout, event->simpleJets2, addJetsFat, mu, ele) ;
 
   if (foundJets == false && foundHardJets == false) return;
 
@@ -696,12 +695,11 @@ float pfCorrIso = (muons[it].pfChaIso+ std::max(muons[it].pfPhoIso+muons[it].pfN
 	muons[it].nValidLayers > 5 &&
 //	muons[it].nHits > 10 &&
         //tracker
-//	(muons[it].cat & 0x2) && 
+//	(muons[it].cat & 0x1) && 
 	//global
-	(muons[it].cat & 0x1) && 
+	(muons[it].cat & 0x2) && 
 	muons[it].nMatches >=2 &&
 	muons[it].ipDb<.2 &&
-	muons[it].zPVPt<0.5 &&
 	//	(muons[it].hIso+muons[it].eIso+muons[it].tIso)/muons[it].p4.Pt()<.15 &&
         pfCorrIso < 0.12 &&
 	fabs(muons[it].p4.Eta())<2.4 &&
@@ -798,27 +796,6 @@ bool wpHWW=((fabs(eta) < 0.8 && id>0.94 && iso < 0.15) ||  (fabs(eta) >= 0.8 && 
     ")" */
 //	(fabs(electrons[it].id95 - 7)) < 0.1  &&
         wp95 &&
-	 (
-         (electrons[it].isEE  &&
-        //fabs(electrons[it].Deta) < 0.009 &&
-        //fabs(electrons[it].Dphi) < 0.1 &&
-        electrons[it].sihih < 0.03  &&
-        electrons[it].HoE < 0.10  &&
-        electrons[it].innerHits == 0  &&
-        (electrons[it].tIso/electrons[it].p4.Pt()) < 0.2 && 
-        (electrons[it].eIso/electrons[it].p4.Pt()) < 0.2 &&
-        (electrons[it].hIso/electrons[it].p4.Pt()) < 0.2) 
-	    || 
-        (electrons[it].isEB &&
-        //fabs(electrons[it].Deta) < 0.007 &&
-        //fabs(electrons[it].Dphi) < 0.015 &&
-        electrons[it].sihih < 0.01  &&
-        electrons[it].HoE < 0.12  &&
-        electrons[it].innerHits == 0  &&
-        (electrons[it].tIso/electrons[it].p4.Pt()) < 0.2 && 
-        (electrons[it].eIso/electrons[it].p4.Pt()) < 0.2 &&
-        (electrons[it].hIso/electrons[it].p4.Pt()) < 0.2) 
-        ) && 
 //2012 cut based ELE ID
   /*      fabs(electrons[it].dxy) < 0.02  &&
         fabs(electrons[it].dz) < 0.1  &&
