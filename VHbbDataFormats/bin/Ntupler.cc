@@ -1,7 +1,7 @@
 #include <TH1F.h>
 #include <TH3F.h>
 #include "PhysicsTools/Utilities/interface/LumiReWeighting.h"
-#include "PhysicsTools/Utilities/interface/Lumi3DReWeighting.h"
+//#include "PhysicsTools/Utilities/interface/Lumi3DReWeighting.h"
 #include <TH2F.h>
 #include <TROOT.h>
 #include <TFile.h>
@@ -803,19 +803,19 @@ int main(int argc, char* argv[])
   }
   edm::LumiReWeighting   lumiWeights;
   edm::LumiReWeighting   lumiWeights1DObs;
-  edm::Lumi3DReWeighting   lumiWeights2011B;
+// edm::Lumi3DReWeighting   lumiWeights2011B;
   if(isMC_)
     {
         	   lumiWeights = edm::LumiReWeighting(PUmcfileName_,PUdatafileName_ , "pileup", "pileup");
         	   lumiWeights1DObs = edm::LumiReWeighting(PUmcfileName2011B_,PUdatafileName2011B_ , "pileup", "pileup");
 
-		   lumiWeights2011B = edm::Lumi3DReWeighting(PUmcfileName2011B_,PUdatafileName2011B_ , "pileup", "pileup");
-                   if(Weight3DfileName_!="")
-		      { lumiWeights2011B.weight3D_init(Weight3DfileName_.c_str()); }
-		   else
-                      {
-                        lumiWeights2011B.weight3D_init(1.0); // generate the weights the fisrt time;
-		      }
+//		   lumiWeights2011B = edm::Lumi3DReWeighting(PUmcfileName2011B_,PUdatafileName2011B_ , "pileup", "pileup");
+  //                 if(Weight3DfileName_!="")
+//		      { lumiWeights2011B.weight3D_init(Weight3DfileName_.c_str()); }
+//		   else
+  //                    {
+    //                    lumiWeights2011B.weight3D_init(1.0); // generate the weights the fisrt time;
+//		      }
 
     }
  
@@ -1285,7 +1285,7 @@ double MyWeight = LumiWeights_.weight( Tnpv );
           PUp1=puitp1->second;
           PUm1=puitm1->second;
           input3DPU->Fill(PUm1,PU0,PUp1);	  
-	  PUweight2011B = lumiWeights2011B.weight3D( puitm1->second, puit0->second,puitp1->second); 
+//	  PUweight2011B = lumiWeights2011B.weight3D( puitm1->second, puit0->second,puitp1->second); 
 	  PUweight1DObs = lumiWeights1DObs.weight( npu); 
 
 	}
@@ -1995,15 +1995,16 @@ double MyWeight = LumiWeights_.weight( Tnpv );
         weightTrigMET150 = triggerWeight.scaleMET150(MET.et);
         weightTrigMET802CJet= weightTrigMET80 * weightTrig2CJet20;
         weightTrigMET1002CJet= weightTrigMET100 * weightTrig2CJet20;
+         weightTrig2012DiJet30MHT80=triggerWeight.scaleDiJet30MHT80_2012A(vhCand.V.mets.at(0).p4.Pt());
+          weightTrig2012PFMET150=triggerWeight.scalePFMET150_2012AB(vhCand.V.mets.at(0).p4.Pt());
+          weightTrig2012SumpT100MET100=triggerWeight.scaleSumpT100MET100_2012B(vhCand.V.mets.at(0).p4.Pt());
 }
 	if( Vtype == VHbbCandidate::Znn ){
 	  nvlep=0;
 	  float weightTrig1 = triggerWeight.scaleMetHLT(vhCand.V.mets.at(0).p4.Pt());
           weightTrigMETLP = weightTrig1;
           weightTrig = weightTrigMET150 + weightTrigMET802CJet  - weightTrigMET802CJet*weightTrigMET150;
-          weightTrig2012DiJet30MHT80=triggerWeight.scaleDiJet30MHT80_2012A(vhCand.V.mets.at(0).p4.Pt());
-          weightTrig2012PFMET150=triggerWeight.scalePFMET150_2012AB(vhCand.V.mets.at(0).p4.Pt());
-          weightTrig2012SumpT100MET100=triggerWeight.scaleSumpT100MET100_2012B(vhCand.V.mets.at(0).p4.Pt());
+     
 //          weightTrig2012A = 
 	}
       
