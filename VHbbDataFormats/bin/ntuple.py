@@ -7,18 +7,9 @@ process = cms.Process("FWLitePlots")
 #fileNames   = cms.vstring('file:2l2bMetEdmNtuples.root'),         ## mandatory
 process.fwliteInput = cms.PSet(
     fileNames   = cms.vstring(
-"file:/home/hep/wilken/DiTauMassReco/src/VHbbAnalysis/HbbAnalyzer/test/Summer11_Hmass125/H125_1M_Summer11_Ditau29.root",
-"file:/home/hep/wilken/DiTauMassReco/src/VHbbAnalysis/HbbAnalyzer/test/Summer11_Hmass125/H125_1M_Summer11_Ditau3.root",
-"file:/home/hep/wilken/DiTauMassReco/src/VHbbAnalysis/HbbAnalyzer/test/Summer11_Hmass125/H125_1M_Summer11_Ditau30.root",
-"file:/home/hep/wilken/DiTauMassReco/src/VHbbAnalysis/HbbAnalyzer/test/Summer11_Hmass125/H125_1M_Summer11_Ditau31.root",
-"file:/home/hep/wilken/DiTauMassReco/src/VHbbAnalysis/HbbAnalyzer/test/Summer11_Hmass125/H125_1M_Summer11_Ditau32.root",
-"file:/home/hep/wilken/DiTauMassReco/src/VHbbAnalysis/HbbAnalyzer/test/Summer11_Hmass125/H125_1M_Summer11_Ditau33.root",
-"file:/home/hep/wilken/DiTauMassReco/src/VHbbAnalysis/HbbAnalyzer/test/Summer11_Hmass125/H125_1M_Summer11_Ditau34.root",
-"file:/home/hep/wilken/DiTauMassReco/src/VHbbAnalysis/HbbAnalyzer/test/Summer11_Hmass125/H125_1M_Summer11_Ditau35.root",
-"file:/home/hep/wilken/DiTauMassReco/src/VHbbAnalysis/HbbAnalyzer/test/Summer11_Hmass125/H125_1M_Summer11_Ditau36.root",
-"file:/home/hep/wilken/DiTauMassReco/src/VHbbAnalysis/HbbAnalyzer/test/Summer11_Hmass125/H125_1M_Summer11_Ditau37.root",
-"file:/home/hep/wilken/DiTauMassReco/src/VHbbAnalysis/HbbAnalyzer/test/Summer11_Hmass125/H125_1M_Summer11_Ditau38.root",
-"file:/home/hep/wilken/DiTauMassReco/src/VHbbAnalysis/HbbAnalyzer/test/Summer11_Hmass125/H125_1M_Summer11_Ditau39.root"
+"file:/home/hep/wilken/DiTauMassReco/src/VHbbAnalysis/HbbAnalyzer/test/Filtered125emu/test/PATallexceptlast3files.edm.root",
+"file:/home/hep/wilken/DiTauMassReco/src/VHbbAnalysis/HbbAnalyzer/test/Filtered125emu/test/PATlastfile.edm.root",
+"file:/home/hep/wilken/DiTauMassReco/src/VHbbAnalysis/HbbAnalyzer/test/Filtered125emu/test/PATsecondtoLasttwofiles.edm.root"
 
 
 ),
@@ -45,7 +36,7 @@ process.fwliteInput = cms.PSet(
 #process.fwliteInput.lumisToProcess.extend(lumiList)
 
 
-channel =  "Summer11ZH125tautree"
+channel =  "FilteredEMU125"
 import os
 dirnameOld = "//pnfs/pi.infn.it/data/cms/store/user/bortigno/DoubleMu/HBB_EDMNtupleV3_ProcV1_may/07fb60889166b64f474d8d0aa162db69/"
 
@@ -117,10 +108,24 @@ process.Analyzer = cms.PSet(
         "HLT_LooseIsoPFTau35_Trk20_v.*", #36
         "HLT_LooseIsoPFTau35_Trk20_MET70_v.*", #37
         "HLT_LooseIsoPFTau35_Trk20_MET75_v.*" #38
-        "HLT_Mu17_Ele8_CaloIdT_CaloIsoVL_v.*", #39
-        "HLT_Mu8_Ele17_CaloIdL_v.*", #40
-        "HLT_Mu8_Ele17_CaloIdT_CaloIsoVL_v.*" #41
-
+        "HLT_Mu17_Ele8_CaloIdT_CaloIsoVL_v.*", #39 emu
+        "HLT_Mu8_Ele17_CaloIdL_v.*", #40 emu
+        "HLT_Mu8_Ele17_CaloIdT_CaloIsoVL_v.*", #41  emu
+		"HLT_LooseIsoPFTau35_Trk20_Prong1_v.*", #42 Wtaunu
+        "HLT_LooseIsoPFTau35_Trk20_Prong1_MET70_v.*", #42  Wtaunu
+        "HLT_LooseIsoPFTau35_Trk20_Prong1_MET75_v.*", #44 Wtaunu
+		"HLT_IsoMu12_LooseIsoPFTau10_v.*",#45 mutau
+		"HLT_IsoMu15_LooseIsoPFTau15_v.*",#46 mutau
+		"HLT_IsoMu15_eta2p1_LooseIsoPFTau20_v.*",#47 mutau
+		"HLT_DoubleIsoPFTau45_Trk5_eta2p1_v.*",#48 tautau
+		"HLT_MediumIsoPFTau35_Trk20_MET60_v.*",#49 Wtaunu
+		"HLT_HT400_DoubleIsoPFTau10_Trk3_PFMHT50_v.*",#50 tautau 
+		"HLT_Ele18_CaloIdVT_TrkIdT_MediumIsoPFTau20_v.*",#51  etau
+		"HLT_Ele20_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_MediumIsoPFTau20_v.*",#52 etau
+		"HLT_Ele15_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_TightIsoPFTau20_v.*",#53 etau
+		"HLT_Ele18_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_TightIsoPFTau20_v.*",#54 etau
+ 		"HLT_HT200_DoubleIsoPFTau10_Trk3_PFMHT35_v.*",#55 tautau 
+		"HLT_MET120_HBHENoiseFiltered_v.*"#56 
         
    ),
     isMC =     cms.bool(True),
