@@ -744,6 +744,7 @@ int main(int argc, char* argv[])
 	
 	bool isMC_( ana.getParameter<bool>("isMC") );  
 	TriggerReader trigger(isMC_);
+	//TriggerReader trigger(false);
 	TriggerReader patFilters(false);
 	
 	edm::LumiReWeighting   lumiWeights;
@@ -770,7 +771,7 @@ int main(int argc, char* argv[])
 	TH3F *  input3DPU = new TH3F("Input3DPU","Input3DPU", 36,-0.5,35.5,36,-0.5,35.5, 36,-0.5,35.5 );
 	
 	TH1F * pu = new TH1F("pileup","",51,-0.5,50.5);
-	_outTree = new TTree("tautree", "myTree");
+	_outTree = new TTree("tree", "myTree");
 	
 	_outTree->Branch("H"		,  &H	            ,  "mass/F:pt/F:eta:phi/F:dR/F:dPhi/F:dEta/F");
 	_outTree->Branch("V"		,  &V	            ,  "mass/F:pt/F:eta:phi/F");
