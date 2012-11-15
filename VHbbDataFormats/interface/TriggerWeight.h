@@ -105,12 +105,12 @@ static  std::pair<float,float> efficiencyFromPtEta(float pt1, float eta1, TTree 
 
 	float scaleMuCrossTrig(float pt1, float eta1)
 	{
-		return efficiencyFromPtEta(pt1,eta1,tscaleHLTmuonCrossTrig).first;
+		return efficiencyFromPtEta(pt1,fabs(eta1),tscaleHLTmuonCrossTrig).first;
 	}
 	
 	float scaleEleCrossTrig(float pt1, float eta1)
 	{
-		return efficiencyFromPtEta(pt1,eta1,tscaleHLTelectronCrossTrig).first;
+		return efficiencyFromPtEta(pt1,fabs(eta1),tscaleHLTelectronCrossTrig).first;
 	}
 	
 
