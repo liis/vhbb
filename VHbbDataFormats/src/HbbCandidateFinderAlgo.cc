@@ -157,29 +157,11 @@ void HbbCandidateFinderAlgo::run (const VHbbEvent* event, std::vector<VHbbCandid
 
   temp.FatH.FatHiggsFlag= foundHardJets;
   if(foundHardJets){
-        TVector3 fathiggsBoost;
-	temp.FatH.p4 = fatj1.p4;
-	temp.FatH.subjetsSize=subJetsout.size();
-	if(subJetsout.size()==2) {
-	  temp.FatH.jets.push_back(subJetsout[0]);
-	  temp.FatH.jets.push_back(subJetsout[1]);
-	  temp.FatH.p4 = subJetsout[0].p4 + subJetsout[1].p4;
-	  fathiggsBoost = (temp.FatH.p4).BoostVector();
-	  temp.FatH.helicities.push_back(selector.getHelicity(subJetsout[0],fathiggsBoost));
-	  temp.FatH.helicities.push_back(selector.getHelicity(subJetsout[1],fathiggsBoost));
-	  temp.FatH.deltaTheta = selector.getDeltaTheta(subJetsout[0],subJetsout[1]);
-	}
-	if(subJetsout.size()==3) {
-	  temp.FatH.jets.push_back(subJetsout[0]);
-	  temp.FatH.jets.push_back(subJetsout[1]);
-	  temp.FatH.jets.push_back(subJetsout[2]);
-	  temp.FatH.p4 = subJetsout[0].p4 + subJetsout[1].p4 + subJetsout[2].p4;
-	  fathiggsBoost = (temp.FatH.p4).BoostVector();
-	  temp.FatH.helicities.push_back(selector.getHelicity(subJetsout[0],fathiggsBoost));
-	  temp.FatH.helicities.push_back(selector.getHelicity(subJetsout[1],fathiggsBoost));
-	  temp.FatH.helicities.push_back(selector.getHelicity(subJetsout[2],fathiggsBoost));
-	  temp.FatH.deltaTheta = selector.getDeltaTheta(subJetsout[0],subJetsout[1]);
-	}
+  temp.FatH.p4 = fatj1.p4;
+  temp.FatH.subjetsSize=subJetsout.size();
+  if(subJetsout.size()==2) {temp.FatH.jets.push_back(subJetsout[0]);temp.FatH.jets.push_back(subJetsout[1]);}
+  if(subJetsout.size()==3) {temp.FatH.jets.push_back(subJetsout[0]);
+  temp.FatH.jets.push_back(subJetsout[1]);temp.FatH.jets.push_back(subJetsout[2]);}
   }
 
   std::vector<VHbbEvent::TauInfo> tauNoCandidateJetOverlap;	 
@@ -210,56 +192,72 @@ void HbbCandidateFinderAlgo::run (const VHbbEvent* event, std::vector<VHbbCandid
   //
   // change must allow a candidate to be both Zee and Zmumu
 
-  // Zmumu
-  result = selector.getHZmumuCandidate(temp,ok,muPos);
-  if ( ok == true ){
-    result.setCandidateType(VHbbCandidate::Zmumu);
-    candidates.push_back(result);
-  }
-  //      HZee
-  result = selector. getHZeeCandidate(temp,ok,elePos);
-  if ( ok == true ){
-    result.setCandidateType(VHbbCandidate::Zee);
-    candidates.push_back(result);
-  }
-  //HWmunu
-  result = selector. getHWmunCandidate(temp,ok,muPos);
-  if ( ok == true ){
-    result.setCandidateType(VHbbCandidate::Wmun);
-    candidates.push_back(result);
-  }
-  // HWenu
-  result = selector. getHWenCandidate(temp,ok,elePos);
-  if ( ok == true ){
-    result.setCandidateType(VHbbCandidate::Wen);
-    candidates.push_back(result);
-  }
-
-  // New tau categorizations currently commented out	 
-   /*	 
-   result = selector.getHWtaunCandidate(temp,ok,tauPosNoCandidateJetOverlap);	 
-   if ( ok == true ){	 
-     if (verbose_) std::cout << "We have a taun candidate" << std::endl;	 
-     result.setCandidateType(VHbbCandidate::Wtaun);	 
-     candidates.push_back(result);	 
-   }	 
-   result = selector.getHZtaumuCandidate(temp,ok,muPos,tauPosNoCandidateJetOverlap);	 
-   if ( ok == true ){	 
-     if (verbose_) std::cout << "We have a HZtaumu candidate" << std::endl;	 
-     result.setCandidateType(VHbbCandidate::Ztaumu);	 
-     candidates.push_back(result);	 
-   }	 
-   */
-
-  if (candidates.size()!=0 ) return;
-
-  // HZnn - look at it only if nothing found up to now
-  result = selector. getHZnnCandidate(temp,ok);
-  if ( ok == true ){
-    result.setCandidateType(VHbbCandidate::Znn);
-    candidates.push_back(result);
-  }
-  return;
+	// Zmumu
+	result = selector.getHZmumuCandidate(temp,ok,muPos);
+	if ( ok == true ){
+		result.setCandidateType(VHbbCandidate::Zmumu);
+		candidates.push_back(result);
+	}
+	//      HZee
+	result = selector. getHZeeCandidate(temp,ok,elePos);
+	if ( ok == true ){
+		result.setCandidateType(VHbbCandidate::Zee);
+		candidates.push_back(result);
+	}
+  	//Zemu
+	result = selector. getHZemuCandidate(temp,ok,elePos,muPos);
+	if ( ok == true ){
+		result.setCandidateType(VHbbCandidate::Zemu);
+		candidates.push_back(result);
+	}
+	// New tau categorizations 
+	result = selector.getHZtaumuCandidate(temp,ok,muPos,tauPosNoCandidateJetOverlap);
+	if ( ok == true ){
+		if (verbose_) std::cout << "We have a HZtaumu candidate" << std::endl;
+		result.setCandidateType(VHbbCandidate::Ztaumu);
+		candidates.push_back(result);
+	}
+	result = selector.getHZtaueCandidate(temp,ok,elePos,tauPosNoCandidateJetOverlap);
+	if ( ok == true ){
+		if (verbose_) std::cout << "We have a HZtaue candidate" << std::endl;
+		result.setCandidateType(VHbbCandidate::Ztaue);
+		candidates.push_back(result);
+	}
+	result = selector.getHWtaunCandidate(temp,ok,tauPosNoCandidateJetOverlap);
+	if ( ok == true ){
+		if (verbose_) std::cout << "We have a taun candidate" << std::endl;
+		result.setCandidateType(VHbbCandidate::Wtaun);
+		candidates.push_back(result);
+	}	
+	//HWmunu
+	result = selector. getHWmunCandidate(temp,ok,muPos);
+	if ( ok == true ){
+		result.setCandidateType(VHbbCandidate::Wmun);
+		candidates.push_back(result);
+	}
+	// HWenu
+	result = selector. getHWenCandidate(temp,ok,elePos);
+	if ( ok == true ){
+		result.setCandidateType(VHbbCandidate::Wen);
+		candidates.push_back(result);
+	}
+	
+	
+ 	result = selector. getHZtautauCandidate(temp,ok,tauPosNoCandidateJetOverlap);
+	if ( ok == true ){
+		result.setCandidateType(VHbbCandidate::Ztautau);
+		candidates.push_back(result);
+	}
+	// std::cout << "number of candidates before Znunu " << candidates.size() << std::endl;
+	if (candidates.size()==0 ) {
+		// HZnn - look at it only if no non-tau candidates found up to now
+		result = selector. getHZnnCandidate(temp,ok);
+		if ( ok == true ){
+			result.setCandidateType(VHbbCandidate::Znn);
+			candidates.push_back(result);
+		}
+	}
+	return;
 }
 
 void HbbCandidateFinderAlgo::findMET(const VHbbEvent::METInfo & met, std::vector<VHbbEvent::METInfo>& out){
@@ -376,7 +374,7 @@ bool HbbCandidateFinderAlgo::findDiJetsHighestPt (const std::vector<VHbbEvent::S
   for (unsigned int i =0; i< jets.size()-1; ++i){
     for (unsigned int j =i+1; j< jets.size(); ++j){
       float pt = (jets[i].p4+jets[j].p4).Pt();
-      if (pt>highestPt && jets[j].p4.Pt()> jetPtThreshold && jets[i].p4.Pt()> jetPtThreshold && fabs(jets[i].p4.Eta()) < etaThr &&  fabs(jets[j].p4.Eta()) < etaThr && jetID(jets[i]) && jetID(jets[j]) && jets[i].puJetIdL >0&& jets[j].puJetIdL >0 ){
+      if (pt>highestPt && jets[j].p4.Pt()> jetPtThreshold && jets[i].p4.Pt()> jetPtThreshold && fabs(jets[i].p4.Eta()) < etaThr &&  fabs(jets[j].p4.Eta()) < etaThr && jetID(jets[i]) && jetID(jets[j]) ){
 	highestPt = pt;
 	highesti=i;
 	highestj=j;
@@ -723,7 +721,7 @@ float pfCorrIso = (muons[it].pfChaIso+ std::max(muons[it].pfPhoIso+muons[it].pfN
 	//	(muons[it].hIso+muons[it].eIso+muons[it].tIso)/muons[it].p4.Pt()<.15 &&
         pfCorrIso < 0.12 &&
 	fabs(muons[it].p4.Eta())<2.4 &&
-	muons[it].p4.Pt()>20 ) {
+	muons[it].p4.Pt()>10 ) {
       out.push_back(muons[it]);
       positions.push_back(it);
   }
@@ -869,7 +867,7 @@ bool wpHWW=((fabs(eta) < 0.8 && id>0.94 && iso < 0.15) ||  (fabs(eta) >= 0.8 && 
 */
 //Remove this workaround as now we have the proper flags
 //	!( fabs(electrons[it].p4.Eta()) < 1.57 && fabs(electrons[it].p4.Eta()) > 1.44) &&
-	electrons[it].p4.Pt()>20 //  I use the minimum ok for both Z and W
+	electrons[it].p4.Pt()>10 //  I use the minimum ok for both Z and W
 	){
 /*      std::cout << "dxy .dz .isEE  .Deta  .Dphi  .sihih  .HoE  .fMVAVar_IoEmIoP  .isEB " <<std::endl;
       std::cout << fabs(electrons[it].dxy)  << " " <<  fabs(electrons[it].dz) << " " << electrons[it].isEE << " " << 

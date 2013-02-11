@@ -8,13 +8,7 @@ process = cms.Process("FWLitePlots")
 process.fwliteInput = cms.PSet(
     fileNames   = cms.vstring(
 
-
-"file:/gpfs/ddn/srm/cms/store/user/lpchbb/degrutto/TT_CT10_TuneZ2star_8TeV-powheg-tauolaSummer12_DR53X-PU_S10_START53_V7A-v2/degrutto/TT_CT10_TuneZ2star_8TeV-powheg-tauola/HBB_EDMNtupleV42/9803889241b1fc304f795d3b3875632d/PAT.edm_693_1_Sys.root"      
-###"dcache:///pnfs/cms/WAX/11/store/user/lpchbb/msegala/WH_WToLNu_HToBB_M-120_8TeV-powheg-herwigpp/HBB_EDMNtupleV30_May2012Prod_2/e63abc9239312b3f728ddbd5ef32b303/"dcap:///pnfs/cms/WAX/11/store/user/degrutto//testMET2012/PAT.edm_11_1_oQQ.root" ,
-##    "../../HbbAnalyzer/test/"dcap:///pnfs/cms/WAX/11/store/user/degrutto//testMET2012/PAT.edm.root",
-#"dcache:///cmsdcache//pnfs/pi.infn.it/data/cms/store/user/tboccali/WH_WToLNu_HToBB_M-120_8TeV-powheg-herwigpp/HBB_EDMNtupleV30_ProcV1_WH_WToLNu_HToBB_M-120/14fe2b624ddea84f5c39709f51bf546f/"dcap:///pnfs/cms/WAX/11/store/user/degrutto//testMET2012/PAT.edm_51_1_3LJ.root"
-#/pnfs/pi.infn.it/data/cms/store/user/tboccali/ZH_ZToNuNu_HToBB_M-120_8TeV-powheg-herwigpp/HBB_EDMNtupleV30_ProcV1_ZH_ZToNuNu_HToBB_M-120/14fe2b624ddea84f5c39709f51bf546f/"dcap:///pnfs/cms/WAX/11/store/user/degrutto//testMET2012/PAT.edm_51_1_ukR.root
-
+"file:/mnt/hadoop/user/uscms01/pnfs/unl.edu/data4/cms/store/user/wilken/V42Step1/WW/PAT1CovMatrixBtag.edm_9_2_Y1P.root"
 
 
 
@@ -23,6 +17,7 @@ process.fwliteInput = cms.PSet(
     PUmcfileName2011B= cms.string("Summer12MCObserved.root"),
     PUdatafileName2011B = cms.string("MyDataPileupHistogramObserved.root"),
     PUmcfileName = cms.string("MC_S10_fromTwiki_60bins.root"),
+    PUdatafileNameAB = cms.string("data_PU_60bins_190456-196509_69.4mb.root"),
     PUdatafileName = cms.string("data_PU_60bins_190456-202305_69.4mb.root"),
     PUdatafileNameMinus = cms.string("data_PU_60bins_190456-202305_66.5mb.root"),
     PUdatafileNamePlus = cms.string("data_PU_60bins_190456-202305_72.4mb.root"),
@@ -36,7 +31,7 @@ process.fwliteInput = cms.PSet(
     )
 
 # get JSON file 
-JSONfile = 'Cert_190456-203002_8TeV_PromptReco_Collisions12_JSON.txt'
+JSONfile = 'Cert_190456-200601_8TeV_PromptReco_Collisions12_JSON.txt'
 lumiList = LumiList.LumiList (filename = JSONfile).getCMSSWString().split(',')
 
 #Uncomment to run with JSON
@@ -46,34 +41,8 @@ process.fwliteInput.lumisToProcess.extend(lumiList)
 
 channel =  "TEST"
 import os
-#dirnameOld = "//pnfs/pi.infn.it/data/cms/store/user/bortigno/DoubleMu/HBB_EDMNtupleV3_ProcV1_may/07fb60889166b64f474d8d0aa162db69/"
-#dirnameOld = "//pnfs/cms/WAX/11/store/user/lpchbb/degrutto/METRun2011APromptV1EdmV31"
-##dirnameOld = "//pnfs/cms/WAX/11/store/user/lpchbb/degrutto/METRun2011APromptV1EdmV31/degrutto/MET/HBB_EDMNtupleV31_May2012Prod/f3f16f0a8d4ba1fd82b25c3d99de1c78/"
-#dirnameOld = "//pnfs/cms/WAX/11/store/user/lpchbb/degrutto/METRun2011BPromptV1EdmV31/degrutto/MET/HBB_EDMNtupleV31_May2012Prod/f3f16f0a8d4ba1fd82b25c3d99de1c78/"
-#dirnameOld = "//pnfs/cms/WAX/11/store/user/lpchbb/degrutto/SingleMuRun2012APromptV1EdmV31/degrutto/SingleMu/HBB_EDMNtupleV31_May2012Prod/f3f16f0a8d4ba1fd82b25c3d99de1c78/"
-#dirnameOld = "//pnfs/cms/WAX/11/store/user/lpchbb/degrutto/SingleMuRun2012BPromptV1EdmV31/degrutto/SingleMu/HBB_EDMNtupleV31_May2012Prod/f3f16f0a8d4ba1fd82b25c3d99de1c78/"
-#dirnameOld = "//pnfs/cms/WAX/11/store/user/lpchbb/dlopes/SingleMuRun2012APromptV1EdmV33/dlopes/SingleMu/HBB_EDMNtupleV33/fc9898cbaf0c3f28aabf20b09408f841/"
-#dirnameOld = "//pnfs/cms/WAX/11/store/user/lpchbb/dlopes/SingleMuRun2012BPromptV1EdmV33/dlopes/SingleMu/HBB_EDMNtupleV33/fc9898cbaf0c3f28aabf20b09408f841/"
-##dirnameOld = "//pnfs/cms/WAX/11/store/user/lpchbb/degrutto/METRun2012APromptJul12/"
-#dirnameOld = "//pnfs/cms/WAX/11/store/user/lpchbb/degrutto/METRun2012BPromptJul12/"
-dirnameOld = "/"
 
 #for i in range(len(channels)):
- 
-
-dirname =  dirnameOld 
-dirlist = os.listdir(dirname)
-basenamelist = os.listdir(dirname + "/")
-for basename in basenamelist:
-#   process.fwliteInput.fileNames.append("dcache:/" + dirname + "/" + basename)
- print "Number of files to process is %s" %(len(process.fwliteInput.fileNames)) 
-    
-    
-
-
-
-#
-
 
 fname = 'Test' + channel + '.root'
 
@@ -122,8 +91,8 @@ process.Analyzer = cms.PSet(
         "HLT_MediumIsoPFTau35_Trk20_MET70_v.*", #35
         "HLT_LooseIsoPFTau35_Trk20_v.*", #36
         "HLT_LooseIsoPFTau35_Trk20_MET70_v.*", #37
-        "HLT_LooseIsoPFTau35_Trk20_MET75_v.*", #38
-        "HLT_DiCentralJetSumpT100_dPhi05_DiCentralPFJet60_25_PFMET100_HBHENoiseCleaned_v.*", #39
+        "HLT_LooseIsoPFTau35_Trk20_MET75_v.*" #38
+		"HLT_DiCentralJetSumpT100_dPhi05_DiCentralPFJet60_25_PFMET100_HBHENoiseCleaned_v.*", #39
         "HLT_DiCentralJet20_CaloMET65_BTagCSV07_PFMHT80_v.*", #40
         "HLT_DiCentralPFJet30_PFMET80_BTagCSV07_v.*", #41
         "HLT_PFMET150_v.*", #42
@@ -135,10 +104,37 @@ process.Analyzer = cms.PSet(
         "HLT_Mu17_TkMu8_v.*", #48
         "HLT_DiCentralPFJet30_PFMHT80_v.*", #49 ## run2012A
         "HLT_DiCentralPFJet30_PFMET80_v.*", #50 ## run2012B prescaled
-
+        "HLT_Mu17_Ele8_CaloIdT_CaloIsoVL_v.*", #51 emu
+        "HLT_Mu8_Ele17_CaloIdL_v.*", #52 emu
+        "HLT_Mu8_Ele17_CaloIdT_CaloIsoVL_v.*", #53  emu
+		"HLT_Mu17_Ele8_CaloIdL_v.*", #54 emu larger prescale 
+		"HLT_LooseIsoPFTau35_Trk20_Prong1_v.*", #55 Wtaunu
+        "HLT_LooseIsoPFTau35_Trk20_Prong1_MET70_v.*", #56  Wtaunu
+        "HLT_LooseIsoPFTau35_Trk20_Prong1_MET75_v.*", #57 Wtaunu
+		"HLT_IsoMu12_LooseIsoPFTau10_v.*",#58 mutau
+		"HLT_IsoMu15_LooseIsoPFTau15_v.*",#59 mutau
+		"HLT_IsoMu15_eta2p1_LooseIsoPFTau20_v.*",#60 mutau
+		"HLT_IsoMu18_eta2p1_LooseIsoPFTau20_v.*",#61 mutau
+		"HLT_IsoMu17_eta2p1_LooseIsoPFTau20_v.*",#62 mutau
+		"HLT_DoubleIsoPFTau45_Trk5_eta2p1_v.*",#63 tautau
+		"HLT_DoubleMediumIsoPFTau30_Trk5_eta2p1_Jet30_v.*",#64 tautau
+		"HLT_MediumIsoPFTau35_Trk20_MET60_v.*",#65 Wtaunu
+		"HLT_HT400_DoubleIsoPFTau10_Trk3_PFMHT50_v.*",#66 tautau 
+		"HLT_Ele18_CaloIdVT_TrkIdT_MediumIsoPFTau20_v.*",#67  etau
+		"HLT_Ele20_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_MediumIsoPFTau20_v.*",#68 etau
+		"HLT_Ele20_CaloIdVT_CaloIsoRhoT_TrkIdT_TrkIsoT_LooseIsoPFTau20_v.*",#69 etau
+		"HLT_Ele15_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_TightIsoPFTau20_v.*",#70 etau
+		"HLT_Ele15_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_LooseIsoPFTau20_v.*",#71 etau
+		"HLT_Ele18_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_TightIsoPFTau20_v.*",#72 etau
+		"HLT_Ele18_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_MediumIsoPFTau20_v.*",#73 etau
+		"HLT_Ele22_eta2p1_WP90Rho_LooseIsoPFTau20_v.", #74 etau
+ 		"HLT_HT200_DoubleIsoPFTau10_Trk3_PFMHT35_v.*",#75 tautau 
+		"HLT_MET120_HBHENoiseFiltered_v.*"#76
         
 
+        
    ),
+   # isMC =     cms.bool(False),
     isMC =     cms.bool(True),
     verbose = cms.bool(False),
     readFromCandidates = cms.bool(False),
@@ -177,6 +173,9 @@ process.Analyzer = cms.PSet(
     idMu2012A = cms.string("triggerRootFiles/MuRecoId.ScaleFactor.2012ABC.root"),
     idEle2012A = cms.string("triggerRootFiles/EleRecoId.ScaleFactor.wp95.2012ABC.root"),
     idEle2012Awp80 = cms.string("triggerRootFiles/EleRecoId.ScaleFactor.wp80.2012ABC.root"),
+	       hltMuCrossTrig = cms.string("TriggerEfficiency_MuonCrossTrigger.root"),
+        hltEleCrossTrig = cms.string("TriggerEfficiency_ElectronCrossTrigger.root"),
+
 
     jecFolder = cms.string("jec"),
     csvDiscr = cms.string("csvdiscr.root"),
@@ -217,6 +216,15 @@ process.Analyzer2012ABOnly = cms.PSet(
     idMu2012A = cms.string("triggerRootFiles/MuRecoId.ScaleFactor.2012AB.root"),
     idEle2012A = cms.string("triggerRootFiles/EleRecoId.ScaleFactor.wp95.2012AB.root"),
     idEle2012Awp80 = cms.string("triggerRootFiles/EleRecoId.ScaleFactor.wp80.2012AB.root"),
-)
+    jecFolder = cms.string("jec"),
+    csvDiscr = cms.string("csvdiscr.root"),
+    btagEffFileName = cms.string("btag_generic.txt"),
+       hltMuCrossTrig = cms.string("TriggerEfficiency_MuonCrossTrigger.root"),
+        hltEleCrossTrig = cms.string("TriggerEfficiency_ElectronCrossTrigger.root")
+ 
+    )
 
+    
+  
+    
 
