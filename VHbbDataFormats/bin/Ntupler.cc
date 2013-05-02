@@ -1469,7 +1469,7 @@ int main(int argc, char* argv[])
     int ievt=0;  
 	int Nevents_Zmumu = 0, Nevents_Zee = 0, Nevents_Wmun = 0, Nevents_Wen = 0, Nevents_Znunu = 0, Nmulti = 0;
 	int Nevents_Zemu = 0, Nevents_Ztaumu = 0, Nevents_Ztaue = 0, Nevents_Wtaun = 0, Nevents_Ztautau = 0, Nevents_Zbb = 0;
-	int Nevents_LowJetPt = 0;
+	int Nevents_LowJetPt = 0, Nevents_SameSign;
 	
 	//  TFile* inFile = new TFile(inputFile.c_str(), "read");
 	for(unsigned int iFile=0; iFile<inputFiles_.size(); ++iFile) {
@@ -2567,7 +2567,41 @@ int main(int argc, char* argv[])
 					PzetaMiss  =  metv.Dot(bisector);
 					
 					
-				}		
+				}
+				if(Vtype == VHbbCandidate::SameSign ){
+					Nevents_SameSign++;
+					leptonForTop=vhCand.V.muons[0].p4;
+					vLeptons.set(vhCand.V.electrons[0],0,11,aux); 
+					vLeptons.set(vhCand.V.muons[0],1,13,aux);
+
+							weightTrig = 1.0;
+					nvlep=2;
+					firstAddMu=1;
+					firstAddEle=1;
+					
+					LorentzVector tauelectron = LorentzVector(vhCand.V.electrons[0].p4.Px(),vhCand.V.electrons[0].p4.Py(),vhCand.V.electrons[0].p4.Pz(),vhCand.V.electrons[0].p4.P());
+					LorentzVector taumuon = LorentzVector(vhCand.V.muons[0].p4.Px(),vhCand.V.muons[0].p4.Py(),vhCand.V.muons[0].p4.Pz(),vhCand.V.muons[0].p4.P());
+					NSVfitStandalone::Vector measuredMET( vhCand.V.mets.at(0).p4.Px(), vhCand.V.mets.at(0).p4.Py(), 0);
+					std::vector<NSVfitStandalone::MeasuredTauLepton> measuredTauLeptons;
+					NSVfitStandalone::LorentzVector p1 = tauelectron;
+					measuredTauLeptons.push_back(NSVfitStandalone::MeasuredTauLepton(NSVfitStandalone::kLepDecay,p1));
+					NSVfitStandalone::LorentzVector p2 = taumuon;
+					measuredTauLeptons.push_back(NSVfitStandalone::MeasuredTauLepton(NSVfitStandalone::kLepDecay,p2));
+					unsigned int flagSA = 0;
+					NSVfitStandaloneAlgorithm algo(measuredTauLeptons,measuredMET,*metsig,flagSA);
+					algo.addLogM(false);
+					algo.integrate();
+					svmass = algo.getMass(); // mass uncertainty not implemented yet
+					if(Verbage)cout << "original mass " << vhCand.V.p4.M() << " SVfit mass " << svmass << " %diff " << (vhCand.V.p4.M()-svmass)/vhCand.V.p4.M() << endl;
+					
+					m.SetPtEtaPhi(vhCand.V.muons[0].p4.Pt(),0,vhCand.V.muons[0].p4.Phi());
+					e.SetPtEtaPhi(vhCand.V.electrons[0].p4.Pt(),0,vhCand.V.electrons[0].p4.Phi());
+					metv.SetPtEtaPhi(vhCand.V.mets.at(0).p4.Pt(),0,vhCand.V.mets.at(0).p4.Phi());
+					TVector3 bisector(m.Unit() + e.Unit());
+					bisector = bisector.Unit();
+					PzetaVis  = (m+e).Dot(bisector);
+					PzetaMiss  =  metv.Dot(bisector);
+}
 				if(Vtype == VHbbCandidate::Ztaumu ){
 					Nevents_Ztaumu++;
 					//cout << "Ztaumu candidate" << endl;
@@ -3142,6 +3176,7 @@ int main(int argc, char* argv[])
 	std::cout << "Number of Wen Events " << Nevents_Wen << endl;
 	std::cout << "Number of Znunu Events " << Nevents_Znunu << endl;
 	std::cout << "Number of Zemu Events " << Nevents_Zemu << endl;
+	std::cout << "Number of SameSign Events " << Nevents_SameSign << endl;
 	std::cout << "Number of Ztaumu Events " << Nevents_Ztaumu << endl;
 	std::cout << "Number of Ztaue Events " << Nevents_Ztaue << endl;
 	std::cout << "Number of Wtaun Events " << Nevents_Wtaun << endl;

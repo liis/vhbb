@@ -15,7 +15,7 @@ class VHbbCandidate {
    //Wen = 3
    //Znn = 4
 
-  enum CandidateType{Zmumu, Zee, Wmun, Wen, Znn, Zemu, Ztaumu, Ztaue, Wtaun, Ztautau, Zbb, UNKNOWN};
+  enum CandidateType{Zmumu, Zee, Wmun, Wen, Znn, Zemu, Ztaumu, Ztaue, Wtaun, Ztautau, Zbb, UNKNOWN, SameSign};
 
     VHbbCandidate(){candidateType=UNKNOWN;}
 
@@ -30,7 +30,7 @@ class VHbbCandidate {
        float et=ptl+met;
        return sqrt(et*et - p4.Pt()*p4.Pt()  );
       }
-    if(candidateType==Wmun||candidateType==Zemu||candidateType==Ztaumu)
+    if(candidateType==Wmun||candidateType==Zemu||candidateType==Ztaumu||candidateType==SameSign)
       {
        float ptl=muons[0].p4.Pt();
        float met=mets[0].p4.Pt();
@@ -40,7 +40,7 @@ class VHbbCandidate {
     return 0;
    }
    	  double Mte(CandidateType candidateType) const {
-		  if(candidateType==Zemu||candidateType==Ztaue)
+		  if(candidateType==Zemu||candidateType==Ztaue||candidateType==SameSign)
 			  {
 				  TVector3 Vecte = electrons[0].p4.Vect();
 				  TVector3 VectMET = mets[0].p4.Vect();
@@ -54,7 +54,7 @@ class VHbbCandidate {
 		  return 0;
 	  }
 	  double Mtmu(CandidateType candidateType) const {
-		  if(candidateType==Zemu||candidateType==Ztaumu)
+		  if(candidateType==Zemu||candidateType==Ztaumu||candidateType==SameSign)
 			  {
 				  TVector3 Vectmu = muons[0].p4.Vect();
 				  TVector3 VectMET = mets[0].p4.Vect();
@@ -125,7 +125,7 @@ class VHbbCandidate {
  int additionalLeptons() const {
    int expectedLeptons = 0;
    if(  candidateType == Wmun ||  candidateType == Wen ||  candidateType == Ztaumu ||  candidateType == Ztaue) expectedLeptons =1;
-   if(  candidateType == Zmumu ||  candidateType == Zee || candidateType == Zemu) expectedLeptons =2;
+   if(  candidateType == Zmumu ||  candidateType == Zee || candidateType == Zemu||candidateType==SameSign) expectedLeptons =2;
 
    return ( V.muons.size() + V.electrons.size() - expectedLeptons);
 

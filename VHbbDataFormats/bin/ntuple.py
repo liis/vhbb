@@ -8,7 +8,9 @@ process = cms.Process("FWLitePlots")
 process.fwliteInput = cms.PSet(
     fileNames   = cms.vstring(
 
-"file:/mnt/hadoop/user/uscms01/pnfs/unl.edu/data4/cms/store/user/wilken/V42Step1/WW/PAT1CovMatrixBtag.edm_9_2_Y1P.root"
+"file:/mnt/hadoop/user/uscms01/pnfs/unl.edu/data4/cms/store/user/wilken/V42Step1/ZH_ZToLL_125HToBB/PAT1CovMatrixBtag.edm_111_1_MOF.root",
+"file:/mnt/hadoop/user/uscms01/pnfs/unl.edu/data4/cms/store/user/wilken/V42Step1/ZH_ZToLL_125HToBB/PAT1CovMatrixBtag.edm_112_1_WNC.root"
+
 
 
 
@@ -18,9 +20,9 @@ process.fwliteInput = cms.PSet(
     PUdatafileName2011B = cms.string("MyDataPileupHistogramObserved.root"),
     PUmcfileName = cms.string("MC_S10_fromTwiki_60bins.root"),
     PUdatafileNameAB = cms.string("data_PU_60bins_190456-196509_69.4mb.root"),
-    PUdatafileName = cms.string("data_PU_60bins_190456-202305_69.4mb.root"),
-    PUdatafileNameMinus = cms.string("data_PU_60bins_190456-202305_66.5mb.root"),
-    PUdatafileNamePlus = cms.string("data_PU_60bins_190456-202305_72.4mb.root"),
+    PUdatafileName = cms.string("data_PU_60bins_190456-208686_69.4mb.root"),
+    PUdatafileNameMinus = cms.string("data_PU_60bins_190456-208686_66.5mb.root"),
+    PUdatafileNamePlus = cms.string("data_PU_60bins_190456-208686_72.4mb.root"),
     Weight3DfileName = cms.string(""),
     maxEvents   = cms.int32(-1),                             ## optional
     runMin  = cms.int32(-1),

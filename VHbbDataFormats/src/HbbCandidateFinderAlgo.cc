@@ -210,6 +210,12 @@ void HbbCandidateFinderAlgo::run (const VHbbEvent* event, std::vector<VHbbCandid
 		result.setCandidateType(VHbbCandidate::Zemu);
 		candidates.push_back(result);
 	}
+ 	//SameSign
+	result = selector. getSameSignCandidate(temp,ok,elePos,muPos);
+	if ( ok == true ){
+		result.setCandidateType(VHbbCandidate::SameSign);
+		candidates.push_back(result);
+	}
 	// New tau categorizations 
 	result = selector.getHZtaumuCandidate(temp,ok,muPos,tauPosNoCandidateJetOverlap);
 	if ( ok == true ){
