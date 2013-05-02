@@ -124,6 +124,7 @@ bool jsonContainsEvent (const std::vector< edm::LuminosityBlockRange > &jsonVec,
 	// events should pass
 	if (jsonVec.empty())
 		{
+std::cout << "WE HAVE A BUG. JSON empty" << std::endl;
 			return true;
 		}
 	bool (* funcPtr) (edm::LuminosityBlockRange const &,
@@ -1192,6 +1193,8 @@ int main(int argc, char* argv[])
 				EVENT.lumi = ev.id().luminosityBlock();
 				EVENT.event = ev.id().event();
 				EVENT.json = jsonContainsEvent (jsonVector, ev);
+cout << "EVENT.json " << EVENT.json << " json vector size " << jsonVector.size() << endl;
+cout << "EVENT.run " << EVENT.run << " Lumi:  " <<  EVENT.lumi << endl;
 				//FIXME : need to update EDM ntuple with BHadron infos
 				// 	// simBHadrons
 				// 	fwlite::Handle<SimBHadronCollection> SBHC;
