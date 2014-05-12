@@ -30,8 +30,9 @@ bool HbbCandidateFinder::filter( edm::Event& iEvent, const edm::EventSetup& iEve
 
   //  hbbCandidateFinderAlgo(vHbbCandidates, vHbbEvent-> result());
   // do nothing for a test
-  
-  algo_->run(vHbbEvent.product(),(*vHbbCandidates),*vHbbEventAux.product());
+ 
+  //FIXME from Joosep: Assuming true here for isZbbHbb, not sure if correct 
+  algo_->run(vHbbEvent.product(),(*vHbbCandidates),*vHbbEventAux.product(), true);
   
   
   if (verbose_)
