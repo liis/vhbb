@@ -638,10 +638,10 @@ BTagSFContainer btagSFs;
     ///###########          PU JET ID #################
    // add puId...
     edm::Handle<edm::ValueMap<float> > puJetIdMVA;
-    iEvent.getByLabel("puJetMva","fullDiscriminant", puJetIdMVA);
+    iEvent.getByLabel("puJetMva","full53xDiscriminant", puJetIdMVA);
 
     edm::Handle<edm::ValueMap<int> > puJetIdFlag;
-    iEvent.getByLabel("puJetMva", "fullId", puJetIdFlag);
+    iEvent.getByLabel("puJetMva", "full53xId", puJetIdFlag);
 
     //    cout  << " pt " << jet_iter->pt() << " eta " << jet_iter->eta() << std::endl;
     unsigned int idx = jet_iter - simplejets2.begin();
@@ -856,10 +856,10 @@ BTagSFContainer btagSFs;
     edm::View<pat::Jet> capr12subjets = *capr12subjetHandle;
 
     // C A 1 2   R A W   J E T S
-    //std::cout << "Fill CA12 Raw jet!" << std::endl;
+    //    std::cout << "Fill CA12 Raw jet!" << std::endl; //FIXME
     for(edm::View<pat::Jet>::const_iterator jet_iter = ca12jets.begin(); jet_iter!=ca12jets.end(); ++jet_iter){
         const std::vector<reco::PFCandidatePtr>& constituents = jet_iter->getPFConstituents();
-        //std::cout << "size: " << constituents.size() << std::endl;
+	//        std::cout << "size: " << constituents.size() << std::endl; //FIXME
         VHbbEvent::RawJet rj;
         rj.p4 = GENPTOLORP(jet_iter);
         rj.Nconstituents = constituents.size();
@@ -883,7 +883,7 @@ BTagSFContainer btagSFs;
                 rj.genconstituents_pdgId.push_back( genconstituents.at(iJC)->pdgId() );
             }
         }
-        hbbInfo->CA12_rawJets.push_back(rj);
+        hbbInfo->CA12_rawJets.push_back(rj); //FIXME
     }
     
     // C A 1 2   M A S S D R O P / F I L T E R E D   J E T S
@@ -1473,8 +1473,9 @@ BTagSFContainer btagSFs;
     if (verbose_)     std::cout <<" pfMETNoPU "<<     hbbInfo->metNoPU.metSig <<" " <<     hbbInfo->metNoPU.sumEt<<std::endl;
   }
  
+  
   edm::Handle<edm::View<reco::MET> > mHTHandle;
-  iEvent.getByLabel("patMETsHT",mHTHandle);
+  iEvent.getByLabel("pfMETNoPU",mHTHandle);
   edm::View<reco::MET> metsHT = *mHTHandle;
   if(metsHT.size()){
     hbbInfo->mht.sumEt=(metsHT[0]).sumEt();
@@ -1484,6 +1485,8 @@ BTagSFContainer btagSFs;
     if (verbose_)     std::cout <<" METHT "<<     hbbInfo->mht.metSig <<" " <<     hbbInfo->mht.sumEt<<std::endl;
   }
   
+
+
   edm::Handle<edm::View<reco::MET> > metHandle;
   iEvent.getByLabel(metLabel_,metHandle);
   edm::View<reco::MET> mets = *metHandle;
@@ -1496,8 +1499,9 @@ BTagSFContainer btagSFs;
     if (verbose_)     std::cout <<" METCALO "<<     hbbInfo->calomet.metSig <<" " <<     hbbInfo->calomet.sumEt<<std::endl;
   }
   
+
   edm::Handle<edm::View<pat::MET> > metPFHandle;
-  iEvent.getByLabel("patMETsPFlow",metPFHandle);
+  iEvent.getByLabel("patMETs",metPFHandle); //Change from patMETsPF
   edm::View<pat::MET> metsPF = *metPFHandle;
   
   if(metsPF.size()){
@@ -1510,7 +1514,7 @@ BTagSFContainer btagSFs;
   
   
   if(verbose_){
-    std::cout << "METs: calomet "<<mets.size()<<" tcmet"<<metsTC.size()<<" pfmet "<<metsPF.size()<<" MHT" <<metsHT.size()<<std::endl;  
+    std::cout << "METs: calomet "<<mets.size()<<" tcmet"<<metsTC.size()<<" pfmet "<<metsPF.size()/*<<" MHT" <<metsHT.size()*/<<std::endl;  
   }
 
   if(verbose_)
@@ -1764,7 +1768,7 @@ BTagSFContainer btagSFs;
     ef.id70r = elec->electronID("simpleEleId70relIso");
     ef.id85r = elec->electronID("simpleEleId85relIso");
 */
-    ef.id95 =elec->electronID("eidVBTFCom95");
+/*    ef.id95 =elec->electronID("eidVBTFCom95");
     ef.id95r=elec->electronID("eidVBTFRel95");
     ef.id85 =elec->electronID("eidVBTFCom85");
     ef.id85r=elec->electronID("eidVBTFRel85");
@@ -1772,6 +1776,7 @@ BTagSFContainer btagSFs;
     ef.id80r=elec->electronID("eidVBTFRel80");
     ef.id70 =elec->electronID("eidVBTFCom70");
     ef.id70r=elec->electronID("eidVBTFRel70");
+*/
     ef.mvaOut=elec->electronID("mvaNonTrigV0");
     ef.mvaOutTrig=elec->electronID("mvaTrigV0");
 
