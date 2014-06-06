@@ -32,13 +32,6 @@ class VHbbCandidateTools {
     }
     return dphi;
   }
-	
-	VHbbCandidate getHZbbCandidate(const VHbbCandidate &in, bool &ok)
-	{
-	  if (verbose_) std::cout<<"In getHZbbCandidate(...)"<<std::endl;
-	  ok=true;
-	  return in;
-	}
   
   
   VHbbCandidate getHZtaumuCandidate(const VHbbCandidate & in, bool & ok, std::vector<unsigned int>& muPos, std::vector<unsigned int>& tauPos){
@@ -63,7 +56,7 @@ class VHbbCandidateTools {
       std::cout <<" getHWtaunCandidate input mu "<<in.V.muons.size()<<" e "<<in.V.electrons.size()<< " tau " << in.V.taus.size() << std::endl;
       std::cout << " pos.size()=" << pos.size() << std::endl;
     }
-   
+    
     ok = false;
     VHbbCandidate temp=in;
     // require a tau and no electrons or muons
@@ -250,7 +243,7 @@ class VHbbCandidateTools {
       std::cout <<" debug met "<< temp.V.mets[0].metSig << " " <<  temp.V.mets[0].sumEt<< std::endl;
     }   
 //    if (temp.V.mets[0].metSig<5) return in;
-    if (temp.V.mets[0].p4.Pt()<80) return in;
+    if (temp.V.mets[0].p4.Pt()<0) return in; // Pt<80 for Znunu, currently using for fullhad without MET cut
     //    if (temp.H.p4.Pt()<150)return in;
     //    if (temp.H.firstJet().csv< 0.9) return in;
     //    if (temp.H.secondJet().csv<0.5) return in;
@@ -266,9 +259,13 @@ class VHbbCandidateTools {
   VHbbCandidate getHWmunCandidate(const VHbbCandidate & in, bool & ok , std::vector<unsigned int>& pos){
     ok = false;
     VHbbCandidate temp=in;
+
     // require a muon and no electrons
     if (temp.V.muons.size()!=1) return in ;
-    if (temp.V.electrons.size()!=0) return in ;
+
+    // L.B. comment here
+    //if (temp.V.electrons.size()!=0) return in ;
+
     if (temp.V.mets.size()<1) return in ;
     //
     /*pT(W) > 150 GeV (pt(W) computed using lepton px,y and PF MET x and y components)
@@ -289,7 +286,7 @@ class VHbbCandidateTools {
     
     temp.V.p4 = temp.V.muons[0].p4+temp.V.mets[0].p4;
     temp.V.firstLeptonOrig=pos[0];
-    
+
     ok=true;
     return temp;
   }
@@ -298,7 +295,10 @@ class VHbbCandidateTools {
     ok = false;
     VHbbCandidate temp=in;
     if (temp.V.electrons.size()!=1) return in ;
+
+    // L.B. comment here
     if (temp.V.muons.size()!=0) return in ;
+
     if (temp.V.mets.size()<1) return in ;
     //
     /*pT(W) > 150 GeV (pt(W) computed using lepton px,y and PF MET x and y components)

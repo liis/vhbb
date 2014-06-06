@@ -69,6 +69,8 @@
 #define nMetUnc 24 
 //eleEnDown/Up, muEn, tauEn, JES, JER, Unclustered for type1 MET [0-11] and than type1p2 MET [12-23]
 
+int doAllHad_ = 1;
+
 struct CompareDeltaR {
   CompareDeltaR(TLorentzVector p4dir_): p4dir(p4dir_) {}
   bool operator()( const VHbbEvent::SimpleJet& j1, const  VHbbEvent::SimpleJet& j2 ) const {
@@ -152,8 +154,8 @@ void  readBadEvents(const char * filename, vector<RLE> & badEvents)
 std::cout <<  std::binary_search (badEvents.begin(), badEvents.end(), RLE(1,1,1),evcomp) << endl;
 std::cout <<  std::binary_search (badEvents.begin(), badEvents.end(), RLE(190456,59,3971011),evcomp) << endl;
 std::cout << "sort" << std::endl;*/
-std::sort (badEvents.begin(), badEvents.end(), evcomp);
-std::cout << "sorted" << std::endl;
+//std::sort (badEvents.begin(), badEvents.end(), evcomp);
+//std::cout << "sorted" << std::endl;
 /*d::cout <<  std::binary_search (badEvents.begin(), badEvents.end(), RLE(1,1,1),evcomp) << endl;
 std::cout <<  std::binary_search (badEvents.begin(), badEvents.end(), RLE(190456,59,3971011),evcomp) << endl;
 */
@@ -201,6 +203,7 @@ float resolutionBias(float eta)
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 namespace LHAPDF {
   void initPDFSet(int nset, int setid, int member=0);
+  void initPDF(int nset);
   void initPDFSet(int nset, const std::string& filename, int member=0);
   int numberPDF(int nset);
   void usePDFMember(int nset, int member);
@@ -210,6 +213,8 @@ namespace LHAPDF {
   double getQ2min(int nset, int member);
   double getQ2max(int nset, int member);
   void extrapolate(bool extrapolate=true);
+  double alphasPDF (double Q);
+  int getOrderAlphaS();
 }
 
 
@@ -327,19 +332,7 @@ typedef struct
   float momid;
 } genParticleInfo;
 
-genParticleInfo returnGenParticleInfo(const reco::Candidate *p)
-{
-  genParticleInfo pInfo;
-  TLorentzVector p_p4(p->px(), p->py(), p->pz(), p->energy());
-  pInfo.mass=p_p4.M();
-  pInfo.pt=p_p4.Pt();
-  pInfo.eta=p_p4.Eta();
-  pInfo.phi=p_p4.Phi();
-  pInfo.status=p->status();
-  pInfo.charge=p->charge();
-  pInfo.momid=p->mother(0)->pdgId();
-  return pInfo;
-} 
+
 
 typedef struct 
 
@@ -519,6 +512,10 @@ float eta=i.p4.Eta();
 float areagamma=0.5;
 float areaNH=0.5;
 float areaComb=0.5;
+
+ // L.B need also these:
+ dxy[j]=i.ipDb;
+ dz[j]=i.dz;
 
  // new EA for electrons to use for Moriond 13
  if(fabs(eta) <= 1.0 ) {areaComb=0.21;}
@@ -944,7 +941,6 @@ int main(int argc, char* argv[])
   HiggsInfo H,SVH,SimBsH;
   FatHiggsInfo FatH;
   genParticleInfo genZ, genZstar, genWstar, genW,  genH, genB, genBbar; //add here the fatjet higgs
-	genParticleInfo genX, genH1, genH1B, genH1Bbar, genH2, genH2B, genH2Bbar;
   genTopInfo genTop, genTbar;
   TrackInfo V;
   TrackInfo VTau;
@@ -954,8 +950,13 @@ int main(int argc, char* argv[])
   float lheNj=0; //for the Madgraph sample stitching
   TrackSharingInfo TkSharing; // track sharing info;
   unsigned int nPdf=0; // number of pdf sets stored
-  float PDFweight[MAXPDF]; // for pdf reweighting (only madgraph)
+  float PDFweight   [MAXPDF]; // for pdf reweighting (only madgraph)
+  float PDFweightSum[MAXPDF]; // for pdf reweighting (only madgraph)
 
+  float PDFweight2   [MAXPDF]; // for pdf reweighting (only madgraph)
+  float PDFweightSum2[MAXPDF]; // for pdf reweighting (only madgraph)
+
+  float SCALEsyst[12];
 
   float HVdPhi,HVMass,HMETdPhi,VMt,deltaPullAngle,deltaPullAngleAK7,deltaPullAngle2,deltaPullAngle2AK7,gendrcc,gendrbb, genZpt, genWpt, genHpt, weightTrig, weightTrigMay,weightTrigV4, weightTrigMET, weightTrigOrMu30, minDeltaPhijetMET,  jetPt_minDeltaPhijetMET , PUweight, PUweightP,PUweightM, PUweightAB, PUweight2011B,PUweight1DObs;
   float PU0,PUp1,PUm1,weightMCProd;
@@ -1004,14 +1005,20 @@ int main(int argc, char* argv[])
   //LHAPDF::initPDFSet(1,_pdfset, _pdfmember);
   // (for Madgraph always (1,10042,0) :  mctqe6l) // CTEQ6l (LO fit/NLO alphas)
   LHAPDF::initPDFSet(1, 10042, 0); // this should always be the first
-  
+
   std::vector<std::string> pdfNames;
   //from pdf prescription from LHC PDF group http://arxiv.org/pdf/1101.0538v1.pdf
   //  pdfNames.push_back("NNPDF20_100.LHgrid"); //NNPDF20 (Neutral Network 100/1000 sets)
   //  pdfNames.push_back("cteq6mE.LHgrid"); //
-  pdfNames.push_back("cteq66.LHgrid"); //
+  pdfNames.push_back("cteq66.LHgrid"); // cteq66.LHgrid
+  //pdfNames.push_back("cteq6l.LHpdf"); // cteq66.LHgrid
+
   //  pdfNames.push_back("MSTW2008lo68cl.LHgrid"); // MSTW2008 (LO central)
-  pdfNames.push_back("MSTW2008nlo68cl.LHgrid"); // MSTW2008 (NLO central)
+
+  // LB: WAS THIS ONE
+  //pdfNames.push_back("MSTW2008nlo68cl.LHgrid"); // MSTW2008 (NLO central)
+  // pdfNames.push_back("cteq65.LHgrid"); 
+
   //Other possible examples:
 //   pdfNames.push_back("cteq6lg.LHgrid"); // CTEQ61 (central value)
 //   pdfNames.push_back("cteq61.LHgrid"); // CTEQ61 (central value)
@@ -1026,16 +1033,22 @@ int main(int argc, char* argv[])
 //   pdfNames.push_back("NNPDF21_100.LHgrid"); //NNPDF23_nlo_as_ (Neutral Network NLO 0+100 replicas)
 //   pdfNames.push_back("MSTW2008lo68cl.LHgrid"); // MSTW2008 (LO central)
 //   pdfNames.push_back("MSTW2008nnlo68cl.LHgrid"); // MSTW2008 (NNLO central)
-  
+
+  doAllHad_=1; //FIXME put to cfg file
   //initializing all the pdf sets
   nPdf=1; // one count the nominal PDF
   for (unsigned int setpdf=2; setpdf <= pdfNames.size()+1; setpdf++){
     //    std::cout << "pdf set " << setpdf << std::endl;
-    //    LHAPDF::initPDFSet(setpdf, pdfNames[setpdf-2], 0); // the member should always be zero (if you do not know what you are doing)
-    LHAPDF::initPDFSet(setpdf, pdfNames[setpdf-2]); // the member should always be zero (if you do not know what you are doing)
+    LHAPDF::initPDFSet(setpdf, pdfNames[setpdf-2], 0); // the member should always be zero (if you do not know what you are doing)
+    //LHAPDF::initPDFSet(setpdf, pdfNames[setpdf-2]); // the member should always be zero (if you do not know what you are doing)
     nPdf+=LHAPDF::numberPDF(setpdf); // count all the members of all the pdfsets
   }
   std::cout << "pdf memebers " << nPdf << std::endl;
+
+  for( unsigned int pp = 0 ; pp < nPdf ; pp++){
+    PDFweightSum[pp] = 0.;
+    PDFweightSum2[pp] = 0.;
+  }
 
   
   // parse arguments
@@ -1099,8 +1112,6 @@ int main(int argc, char* argv[])
   std::string Weight3DfileName_ = in.getParameter<std::string> ("Weight3DfileName") ;
   
   JECFWLite jec(ana.getParameter<std::string>("jecFolder"));
-	
-	bool isZbbHbbAnalysis_(ana.getParameter<bool>("isZbbHbbAnalysis"));
 
   bool isMC_( ana.getParameter<bool>("isMC") );  
   TriggerReader trigger(false);
@@ -1157,6 +1168,7 @@ int main(int argc, char* argv[])
   TH1F *  countWithPUMCProd = new TH1F("CountWithPUMCProd","CountWithPUMCProd", 1,0,2 );
   TH1F *  countWithSignalQCDcorrections = new TH1F("countWithSignalQCDcorrections","countWithSignalQCDcorrections", 1,0,2 );
 
+  TH1F *  count_Q2 = new TH1F("Count_Q2","Count_Q2", 3,0,3 );
 
   TH3F *  input3DPU = new TH3F("Input3DPU","Input3DPU", 36,-0.5,35.5,36,-0.5,35.5, 36,-0.5,35.5 );
 
@@ -1171,7 +1183,12 @@ int main(int argc, char* argv[])
   _outTree->Branch("lheHT"            ,  &lheHT                 ,  "lheHT/F");
   _outTree->Branch("lheNj"            ,  &lheNj                 ,  "lheNj/F");
   _outTree->Branch("nPdf"            ,  &nPdf                 ,  "nPdf/I");
-  _outTree->Branch("PDFweight"          ,  PDFweight               ,  "PDFweight[nPdf]/F");
+  _outTree->Branch("PDFweight"             ,  PDFweight               ,  "PDFweight[nPdf]/F");
+  _outTree->Branch("PDFweightSum"          ,  PDFweightSum               ,  "PDFweightSum[nPdf]/F");
+  _outTree->Branch("PDFweight2"             ,  PDFweight2               ,  "PDFweight2[nPdf]/F");
+  _outTree->Branch("PDFweightSum2"          ,  PDFweightSum2              ,  "PDFweightSum2[nPdf]/F");
+
+  _outTree->Branch("SCALEsyst", SCALEsyst, "SCALEsyst[12]/F");
 
   _outTree->Branch("genZ"		,  &genZ	            ,  "mass/F:pt/F:eta:phi/F:status/F:charge:momid/F");
   _outTree->Branch("genZstar"		,  &genZstar	            ,  "mass/F:pt/F:eta:phi/F:status/F:charge:momid/F");
@@ -1183,16 +1200,6 @@ int main(int argc, char* argv[])
 
   _outTree->Branch("genTop"		,  &genTop	            ,  "bmass/F:bpt/F:beta:bphi/F:bstatus/F:wdau1mass/F:wdau1pt/F:wdau1eta:wdau1phi/F:wdau1id/F:wdau2mass/F:wdau2pt/F:wdau2eta:wdau2phi/F:wdau2id/F");
   _outTree->Branch("genTbar"		,  &genTbar	            ,  "bmass/F:bpt/F:beta:bphi/F:bstatus/F:wdau1mass/F:wdau1pt/F:wdau1eta:wdau1phi/F:wdau1id/F:wdau2mass/F:wdau2pt/F:wdau2eta:wdau2phi/F:wdau2id/F");
-
-  // --- Souvik's addition for HbbHbb ---
-  _outTree->Branch("genX", &genX, "mass/F:pt/F:eta:phi/F:status/F:charge:momid/F");
-  _outTree->Branch("genH1", &genH1, "mass/F:pt/F:eta:phi/F:status/F:charge:momid/F");
-  _outTree->Branch("genH2", &genH2, "mass/F:pt/F:eta:phi/F:status/F:charge:momid/F");
-  _outTree->Branch("genH1B", &genH1B, "mass/F:pt/F:eta:phi/F:status/F:charge:momid/F");
-  _outTree->Branch("genH1Bbar", &genH1Bbar, "mass/F:pt/F:eta:phi/F:status/F:charge:momid/F");
-  _outTree->Branch("genH2B", &genH2B, "mass/F:pt/F:eta:phi/F:status/F:charge:momid/F");
-  _outTree->Branch("genH2Bbar", &genH2Bbar, "mass/F:pt/F:eta:phi/F:status/F:charge:momid/F");
-  // ------------------------------------
 
   _outTree->Branch("TkSharing", &TkSharing, "HiggsCSVtkSharing/b:HiggsIPtkSharing:HiggsSVtkSharing:FatHiggsCSVtkSharing:FatHiggsIPtkSharing:FatHiggsSVtkSharing");
 
@@ -1239,7 +1246,7 @@ int main(int argc, char* argv[])
   _outTree->Branch("hJet_SoftLeptdR", hJets.SoftLeptdR , "SoftLeptdR[nhJets]/F");
   _outTree->Branch("hJet_SoftLeptptRel", hJets.SoftLeptptRel , "SoftLeptptRel[nhJets]/F");
   _outTree->Branch("hJet_SoftLeptRelCombIso", hJets.SoftLeptRelCombIso , "SoftLeptRelCombIso[nhJets]/F");
-  _outTree->Branch("hJet_genPt",hJets.genPt ,"genPt[nhJets]/F");
+ _outTree->Branch("hJet_genPt",hJets.genPt ,"genPt[nhJets]/F");
   _outTree->Branch("hJet_genEta",hJets.genEta ,"genEta[nhJets]/F");
   _outTree->Branch("hJet_genPhi",hJets.genPhi ,"genPhi[nhJets]/F");
   _outTree->Branch("hJet_JECUnc",hJets.JECUnc ,"JECUnc[nhJets]/F");
@@ -1358,7 +1365,6 @@ int main(int argc, char* argv[])
   _outTree->Branch("aJet_genPhi",aJets.genPhi ,"genPhi[naJets]/F");
   _outTree->Branch("aJet_JECUnc",aJets.JECUnc ,"JECUnc[naJets]/F");
   _outTree->Branch("aJet_vtxMass",aJets.vtxMass ,"vtxMass[naJets]/F");
-	_outTree->Branch("aJet_vtxPt",aJets.vtxPt ,"vtxPt[naJets]/F");
   _outTree->Branch("aJet_vtx3dL",aJets.vtx3dL ,"vtx3dL[naJets]/F");
   _outTree->Branch("aJet_vtx3deL",aJets.vtx3deL ,"vtx3deL[naJets]/F");
   _outTree->Branch("aJet_id",aJets.id ,"id[naJets]/b");
@@ -1368,8 +1374,6 @@ int main(int argc, char* argv[])
   _outTree->Branch("aJet_SF_CSVLerr",aJets.SF_CSVLerr ,"SF_CSVLerr[naJets]/b");
   _outTree->Branch("aJet_SF_CSVMerr",aJets.SF_CSVMerr ,"SF_CSVMerr[naJets]/b");
   _outTree->Branch("aJet_SF_CSVTerr",aJets.SF_CSVTerr ,"SF_CSVTerr[naJets]/b");
-	_outTree->Branch("aJet_ptRaw",aJets.ptRaw ,"ptRaw[naJets]/F");
-  _outTree->Branch("aJet_ptLeadTrack",aJets.ptLeadTrack ,"ptLeadTrack[naJets]/F");
 
   _outTree->Branch("naJetsFat"             ,  &naJetsFat                  ,  "naJetsFat/I");
   _outTree->Branch("aJetFat_pt",aJetsFat.pt ,"pt[naJetsFat]/F");
@@ -1674,6 +1678,9 @@ int main(int argc, char* argv[])
 
   int ievt=0;  
   int totalcount=0;
+  float total_Q2Nominal = 0.;
+  float total_Q2Up      = 0.;
+  float total_Q2Down    = 0.;
  
   //  TFile* inFile = new TFile(inputFile.c_str(), "read");
   for(unsigned int iFile=0; iFile<inputFiles_.size(); ++iFile) {
@@ -1687,10 +1694,15 @@ int main(int argc, char* argv[])
       fwlite::Handle< VHbbEventAuxInfo > vhbbAuxHandle; 
       for(ev.toBegin(); !ev.atEnd() ; ++ev, ++ievt)
         {
-          if (ievt <= skipEvents_) continue;
+	  
+          if (ievt < skipEvents_) continue;
           if (maxEvents_ >= 0){
               if (ievt > maxEvents_ + skipEvents_) break;
           }
+
+	  if( ievt%2000==0 ) cout << "Processing event " << ievt << endl; 
+	 
+
       const char * lab = "HbbAnalyzerNew";
       vhbbAuxHandle.getByLabel(ev,lab,0,0);
       const VHbbEventAuxInfo & aux = *vhbbAuxHandle.product();
@@ -1707,62 +1719,9 @@ int main(int argc, char* argv[])
       if(EVENT.run > runMax_ && runMax_ > 0) continue;
 
       count->Fill(1.);
-			
-      // Fill the ntuples with H(bb)H(bb) generator level information
-      if (isMC_)
-      {
-        fwlite::Handle <reco::GenParticleCollection> genParticlesHandle;
-	      genParticlesHandle.getByLabel(ev, "savedGenParticles");
-	      const reco::GenParticleCollection *genParticles=&(*genParticlesHandle.product());
-	
-        for (size_t i=0; i<genParticles->size(); ++i)
-        {
-          const reco::GenParticle *p=&((*genParticles).at(i));
-          int id=p->pdgId();
-          int st=p->status();
-          if (abs(id)==35 && st==3) // H0
-          {
-            genX=returnGenParticleInfo(p);
-            
-            const reco::Candidate *H1_cand=p->daughter(0);
-            if (H1_cand->pdgId()==25)
-            {
-              genH1=returnGenParticleInfo(H1_cand);
-              const reco::Candidate *H1B_cand=H1_cand->daughter(0);
-              if (H1B_cand->pdgId()==5)
-              {
-                genH1B=returnGenParticleInfo(H1B_cand);
-              }
-              else std::cout<<"ERROR: First h0's first daughter is not a b!"<<std::endl;
-              const reco::Candidate *H1Bbar_cand=H1_cand->daughter(1);
-              if (H1Bbar_cand->pdgId()==-5)
-              {
-                genH1Bbar=returnGenParticleInfo(H1Bbar_cand);
-              }
-              else std::cout<<"ERROR: First h0's second daughter is not a bbar!"<<std::endl;
-            }
-            else std::cout<<"ERROR: H0's first daughter is not an h0!"<<std::endl;
-            const reco::Candidate *H2_cand=p->daughter(1);
-            if (H2_cand->pdgId()==25)
-            {
-              genH2=returnGenParticleInfo(H2_cand);
-              const reco::Candidate *H2B_cand=H2_cand->daughter(0);
-              if (H2B_cand->pdgId()==5)
-              {
-                genH2B=returnGenParticleInfo(H2B_cand);
-              }
-              else std::cout<<"ERROR: Second h0's first daughter is not a b!"<<std::endl;
-              const reco::Candidate *H2Bbar_cand=H2_cand->daughter(1);
-              if (H2Bbar_cand->pdgId()==-5)
-              {
-                genH2Bbar=returnGenParticleInfo(H2Bbar_cand);
-              }
-              else std::cout<<"ERROR: Second h0's second daughter is not a bbar!"<<std::endl;
-            } else std::cout<<"ERROR: H0's second daughter is not an h0!"<<std::endl;
-          }
-        }
-      }
 
+
+	
 /*
 Handle<std::vector< PileupSummaryInfo > >  PupInfo;
 event.getByLabel(edm::InputTag("addPileupInfo"), PupInfo);
@@ -1820,6 +1779,8 @@ double MyWeight = LumiWeights_.weight( Tnpv );
 	//LHE Infos
 	fwlite::Handle<LHEEventProduct> evt;
 
+	//cout << "Pos-5" << endl;
+
 	//	std::cout << "Label for lhe = " << evt.getBranchNameFor(ev,"source") << std::endl;
 	if( !((evt.getBranchNameFor(ev,"source")).empty()) ){
 	  evt.getByLabel(ev,"source");
@@ -1835,7 +1796,7 @@ double MyWeight = LumiWeights_.weight( Tnpv );
 	  const lhef::HEPEUP hepeup_ = evt->hepeup();
 	  const std::vector<lhef::HEPEUP::FiveVector> pup_ = hepeup_.PUP; // px, py, pz, E, M
 
-//################# PDF CODE ##################
+	  //################# PDF CODE ##################
 
 
           //############# PDF reweighting ##################
@@ -1864,8 +1825,50 @@ double MyWeight = LumiWeights_.weight( Tnpv );
 
           newpdf1 = LHAPDF::xfx(1, x1prime, Q, id1)/x1prime;
           newpdf2 = LHAPDF::xfx(1, x2prime, Q, id2)/x2prime;
-          PDFweight[0] = (newpdf1/oldpdf1)*(newpdf2/oldpdf2);
 
+          PDFweight[0] = (newpdf1/oldpdf1)*(newpdf2/oldpdf2);
+	  PDFweightSum[0] += PDFweight[0];
+
+	  PDFweight2[0] = 1.;
+	  PDFweightSum2[0] += PDFweight2[0] ;
+
+	  // first, compute change due to alphaS scale var
+	  SCALEsyst[0] = Q;
+	  SCALEsyst[2] = LHAPDF::alphasPDF(Q*0.5)/LHAPDF::alphasPDF(Q);
+	  SCALEsyst[3] = LHAPDF::alphasPDF(Q*2.0)/LHAPDF::alphasPDF(Q);
+	  // then, compute change de to renormalization scale
+	  //LHAPDF::initPDFSet(3, "cteq6l.LHpdf", 0);
+	  //double newpdf1Q2     = oldpdf1;
+	  //double newpdf2Q2     = oldpdf2;
+	  double newpdf1Q2     = LHAPDF::xfx(1, x1, Q, id1)/x1;
+          double newpdf2Q2     = LHAPDF::xfx(1, x2, Q, id2)/x2;
+	  double newpdf1Q2Up   = LHAPDF::xfx(1, x1, Q*2.0, id1)/x1;
+          double newpdf2Q2Up   = LHAPDF::xfx(1, x2, Q*2.0, id2)/x2;
+	  double newpdf1Q2Down = LHAPDF::xfx(1, x1, Q*0.5, id1)/x1;
+          double newpdf2Q2Down = LHAPDF::xfx(1, x2, Q*0.5, id2)/x2;
+	  SCALEsyst[4] = newpdf1Q2Down* newpdf2Q2Down/ newpdf1Q2 / newpdf2Q2;
+	  SCALEsyst[5] = newpdf1Q2Up  * newpdf2Q2Up  / newpdf1Q2 / newpdf2Q2;
+
+
+	
+	  //cout << "Q=" << SCALEsyst[0] << " ==>  " << SCALEsyst[2] << ", " << SCALEsyst[3] << ", " << SCALEsyst[4] << ", " << SCALEsyst[5] << endl;
+	  //cout << "x1=" << x1 << " (" << id1 << ") ==> " << newpdf1Q2Up/newpdf1Q2 << endl;
+	  //cout << "x2=" << x2 << " (" << id2 << ") ==> " << newpdf2Q2Up/newpdf2Q2 << endl;
+
+// 	  cout << "PDF at x=0.1 for gluons @ Q=100 " << LHAPDF::xfx(3, 0.1, 100, 0)/0.1<< endl;
+// 	  cout << "PDF at x=0.1 for gluons @ Q=200 " << LHAPDF::xfx(3, 0.1, 200, 0)/0.1<< endl;
+// 	  cout << "PDF at x=0.1 for gluons @ Q=400 " << LHAPDF::xfx(3, 0.1, 400, 0)/0.1<< endl;
+
+// 	  cout << "PDF at x=0.01 for gluons @ Q=100 " << LHAPDF::xfx(3, 0.01, 100, 0)/0.01<< endl;
+// 	  cout << "PDF at x=0.01 for gluons @ Q=200 " << LHAPDF::xfx(3, 0.01, 200, 0)/0.01<< endl;
+// 	  cout << "PDF at x=0.01 for gluons @ Q=400 " << LHAPDF::xfx(3, 0.01, 400, 0)/0.01<< endl;
+
+// 	  cout << "PDF at x=0.001 for gluons @ Q=100 " << LHAPDF::xfx(3, 0.001, 100, 0)/0.001<< endl;
+// 	  cout << "PDF at x=0.001 for gluons @ Q=200 " << LHAPDF::xfx(3, 0.001, 200, 0)/0.001<< endl;
+// 	  cout << "PDF at x=0.001 for gluons @ Q=400 " << LHAPDF::xfx(3, 0.001, 400, 0)/0.001<< endl;
+
+	  double nominalcteq66pdf1 = -1.;
+	  double nominalcteq66pdf2 = -1.;
 
           //new pdf set
           for (unsigned int setpdf=2; setpdf <= pdfNames.size()+1; ++setpdf){
@@ -1876,24 +1879,58 @@ double MyWeight = LumiWeights_.weight( Tnpv );
               newpdf1 = LHAPDF::xfx(setpdf, x1prime, Q, id1)/x1prime;
               newpdf2 = LHAPDF::xfx(setpdf, x2prime, Q, id2)/x2prime;
               int norm = (setpdf-2)*LHAPDF::numberPDF(setpdf); // normalisation
-              PDFweight[norm+setpdf-1+pdfmember] = (newpdf1/oldpdf1)*(newpdf2/oldpdf2);
 
+              PDFweight[norm+setpdf-1+pdfmember]     = (newpdf1/oldpdf1)*(newpdf2/oldpdf2);
+	      PDFweightSum[norm+setpdf-1+pdfmember] += PDFweight[norm+setpdf-1+pdfmember];
+
+	      if( setpdf==2 && pdfmember==0){
+		nominalcteq66pdf1 = newpdf1;
+		nominalcteq66pdf2 = newpdf2;		
+	      }
+	      	      
+	      PDFweight2[norm+setpdf-1+pdfmember]     = (newpdf1/nominalcteq66pdf1)*(newpdf2/nominalcteq66pdf2);
+	      PDFweightSum2[norm+setpdf-1+pdfmember] += PDFweight2[norm+setpdf-1+pdfmember];		  
             }
 
           }
 
           //############### LHE stitching information ##################
 
+	  int countBquarks = 0;
+	  int countCquarks = 0;
+	  int countUDSquarks = 0;
+	  int countGquarks = 0;
+	  int countExtraPartons = 0;
 
 //################# END OF PDF CODE ##################
 	  for(unsigned int i=0; i<pup_.size(); ++i){
 	    int id=hepeup_.IDUP[i]; //pdgId
 	    int status = hepeup_.ISTUP[i];
 	    int idabs=TMath::Abs(id); 
+
+	    if(0){	      
+	      cout << i << " ==> ID " << id << ", STATUS " <<status << endl;
+	      cout << "  ==> MOM indx " << hepeup_.MOTHUP[i].first << "," << hepeup_.MOTHUP[i].second << endl;
+	      cout << "  ==> MOM IDs " << hepeup_.IDUP[ hepeup_.MOTHUP[i].first ] << "," << hepeup_.IDUP[ hepeup_.MOTHUP[i].second ] << endl;
+	    }
+
+
 	    if( status == 1 && ( ( idabs == 21 ) || (idabs > 0 && idabs < 7) ) ){ // gluons and quarks
 	      lheHT += TMath::Sqrt( TMath::Power(hepeup_.PUP[i][0],2) + TMath::Power(hepeup_.PUP[i][1],2) ); // first entry is px, second py
 	      lheNj++;
 	    }	    
+
+	    if ( hepeup_.ISTUP[i] >= 0 && status == 1 ){
+	      if (  !(hepeup_.MOTHUP[i].first !=1 && hepeup_.MOTHUP[i].second !=2)  ){
+		if(idabs==5  ) countBquarks++;
+		if(idabs==4  ) countCquarks++;
+		if(idabs<=3 && idabs>=1 ) countUDSquarks++;
+		if(idabs==21  ) countGquarks++;		
+		if(idabs==21 || (idabs>=1 && idabs<=5)) countExtraPartons++;
+	      }
+	    }
+
+
 
 	    if(id==11){ l.SetPxPyPzE(hepeup_.PUP[i][0],hepeup_.PUP[i][1],hepeup_.PUP[i][2],hepeup_.PUP[i][3]); lCheck=true;}
 	    if(id==-11){ lbar.SetPxPyPzE(hepeup_.PUP[i][0],hepeup_.PUP[i][1],hepeup_.PUP[i][2],hepeup_.PUP[i][3]); lbarCheck=true;}
@@ -1916,9 +1953,30 @@ double MyWeight = LumiWeights_.weight( Tnpv );
 	  if( lCheck && vlbarCheck ) V_tlv = l + vlbar; // WToLNu
 	  if( lbarCheck && vlCheck ) V_tlv = lbar + vl; // WToLNu       
 	  lheV_pt = V_tlv.Pt();
+
+	  SCALEsyst[1]  = countExtraPartons;
+	  SCALEsyst[6]  = countGquarks;
+	  SCALEsyst[7]  = countUDSquarks;
+	  SCALEsyst[8]  = countCquarks;
+	  SCALEsyst[9]  = countBquarks;
+	  SCALEsyst[10] = id1;
+	  SCALEsyst[11] = id2;
+	  //cout << "Extra partons " << SCALEsyst[1] << " (g=" << countGquarks << ", uds=" << countUDSquarks << " ,c=" << SCALEsyst[6] << ", b=" << SCALEsyst[7] << ")" << " [id1,id2]=" << id1 << "," << id2 << endl;
+
+
+	  total_Q2Nominal += 1.;
+	  total_Q2Down    += TMath::Power(SCALEsyst[2],SCALEsyst[1])*SCALEsyst[4] ;
+	  total_Q2Up      += TMath::Power(SCALEsyst[3],SCALEsyst[1])*SCALEsyst[5] ;
+
+
+
 	}
 
-	//std::cout << "lhe V pt = " << lheV_pt << std::endl;
+
+
+
+
+	//cout << "Pos-3" << endl;
 
 	//Write event info 
  	
@@ -1940,6 +1998,7 @@ double MyWeight = LumiWeights_.weight( Tnpv );
 	const VHbbEvent *  iEvent =0;
 	if(fromCandidate)
 	  {
+	   
 	    fwlite::Handle< std::vector<VHbbCandidate> > vhbbCandHandleZ;
 	    vhbbCandHandleZ.getByLabel(ev,"hbbBestCSVPt20Candidates");
 	    candZ = vhbbCandHandleZ.product();
@@ -1950,6 +2009,7 @@ double MyWeight = LumiWeights_.weight( Tnpv );
 	  }
 	else
 	  {
+	    
 	    candZlocal->clear();
 	    candWlocal->clear();
 	    fwlite::Handle< VHbbEvent > vhbbHandle;
@@ -2007,6 +2067,7 @@ double MyWeight = LumiWeights_.weight( Tnpv );
                     }
                 }
             } else {  // for data
+	      
                 //iEvent = vhbbHandle.product();
                 // modify also the real data now to apply JEC 2012
                 iEvent= &modifiedEvent;
@@ -2031,7 +2092,8 @@ double MyWeight = LumiWeights_.weight( Tnpv );
  
             }  
 
-	    algoZ->run(iEvent,*candZlocal,aux, isZbbHbbAnalysis_);
+	   
+	    algoZ->run(iEvent,*candZlocal,aux);
 	    algoW->run(iEvent,*candWlocal,aux);
 
 
@@ -2060,7 +2122,7 @@ double MyWeight = LumiWeights_.weight( Tnpv );
 
         const std::vector<VHbbCandidate> * cand = candZ;
 
-
+	//cout << "Pos-2" << endl;
       
 	/*  fwlite::Handle< VHbbEvent > vhbbHandle; 
 	    vhbbHandle.getByLabel(ev,"HbbAnalyzerNew");
@@ -2071,7 +2133,6 @@ double MyWeight = LumiWeights_.weight( Tnpv );
 	bool isW=false;
 
 	// to check how much we gain with jets subtraction 
-
 
 
 	tauMinusMode = -99;
@@ -2093,38 +2154,41 @@ double MyWeight = LumiWeights_.weight( Tnpv );
 	      }
 	  }
 	
+
 	genHpt=aux.mcH.size() > 0 ? aux.mcH[0].p4.Pt():-99;
+
 
        //	 if(cand->size() == 0 or cand->at(0).H.jets.size() < 2) continue;
 	if(cand->size() == 0 ) continue;
-        //std::cout << "cand->size() " << cand->size() << std::endl;
-	//std::cout << "cand->at(0).H.jets.size() " << cand->at(0).H.jets.size() << std::endl;
+       	//std::cout << "cand->at(0).H.jets.size() " << cand->at(0).H.jets.size() << std::endl;
 	if(cand->size() > 1 ) 
           {
 	    std::cout << "MULTIPLE CANDIDATES: " << cand->size() << std::endl;
           }
-	if(cand->at(0).candidateType == VHbbCandidate::Wmun || cand->at(0).candidateType == VHbbCandidate::Wen ) { cand=candW; isW=true; }
+	if(cand->size() > 0 ) 
+	  if(cand->at(0).candidateType == VHbbCandidate::Wmun || cand->at(0).candidateType == VHbbCandidate::Wen ) { cand=candW; isW=true; }
 	if(cand->size() == 0) 
           {
 	    //            std::cout << "W event loss due to tigther cuts" << std::endl;
             continue;
-          }
+	    }
 
-	
+	//cout << "Pos-1" << endl;
+
 	// secondary vtxs
-	fwlite::Handle<std::vector<reco::Vertex> > SVC;
-	SVC.getByLabel(ev,"bcandidates");
-	const std::vector<reco::Vertex> svc = *(SVC.product());
+// 	fwlite::Handle<std::vector<reco::Vertex> > SVC;
+// 	SVC.getByLabel(ev,"bcandidates");
+// 	const std::vector<reco::Vertex> svc = *(SVC.product());
         
 	const VHbbCandidate & vhCand =  cand->at(0);
-	patFilters.setEvent(&ev,"VH");
-	hbhe = patFilters.accept("hbhe");
-	ecalFlag = patFilters.accept("ecalFilter");
-	totalKinematics = patFilters.accept("totalKinematics");
-        cschaloFlag = patFilters.accept("cschaloFilter");   
-        hcallaserFlag = patFilters.accept("hcallaserFilter");   
-        trackingfailureFlag = patFilters.accept("trackingfailureFilter");   
-        eebadscFlag = patFilters.accept("eebadscFilter");   
+// 	patFilters.setEvent(&ev,"VH");
+// 	hbhe = patFilters.accept("hbhe");
+// 	ecalFlag = patFilters.accept("ecalFilter");
+// 	totalKinematics = patFilters.accept("totalKinematics");
+//         cschaloFlag = patFilters.accept("cschaloFilter");   
+//         hcallaserFlag = patFilters.accept("hcallaserFilter");   
+//         trackingfailureFlag = patFilters.accept("trackingfailureFilter");   
+//         eebadscFlag = patFilters.accept("eebadscFilter");   
 
 	trigger.setEvent(&ev);
 	for(size_t j=0;j < triggers.size();j++)
@@ -2133,13 +2197,12 @@ double MyWeight = LumiWeights_.weight( Tnpv );
 	eventFlav=0;
 
 
-
 	if(aux.mcBbar.size() > 0 || aux.mcB.size() > 0) eventFlav=5;
 	else if(aux.mcC.size() > 0) eventFlav=4;
 
+	//cout << "Pos0" << endl;
 
 	Vtype = vhCand.candidateType;
-	VtypeWithTau=vhCand.candidateTypeWithTau;
 
         if(vhCand.H.HiggsFlag) H.HiggsFlag=1; else H.HiggsFlag=0;
 
@@ -2202,6 +2265,8 @@ double MyWeight = LumiWeights_.weight( Tnpv );
 	
         } // FatHiggsFlag
 
+       //cout << "Pos1" << endl;
+
         hJets.reset();
         aJets.reset(); 
         if(vhCand.H.HiggsFlag){    
@@ -2210,7 +2275,9 @@ double MyWeight = LumiWeights_.weight( Tnpv );
 	hJets.set(vhCand.H.jets[0],0);
 	hJets.set(vhCand.H.jets[1],1);
 
+	VtypeWithTau=vhCand.candidateTypeWithTau;
 	aJets.reset();
+
 
 	naJets=vhCand.additionalJets.size();
 	numBJets=0;
@@ -2219,11 +2286,14 @@ double MyWeight = LumiWeights_.weight( Tnpv );
 	for( int j=0; j < naJets && j < MAXJ; j++ ) 
           {
 	    aJets.set(vhCand.additionalJets[j],j);
+
 	    if(vhCand.additionalJets[j].csv> btagThr) numBJets++;
 	    if (VtypeWithTau==VHbbCandidate::Wtaun) {
 	      aJets.selectedTauDR[j] = vhCand.VTau.taus[0].p4.DeltaR(vhCand.additionalJets[j].p4);
 	    }
+
           }   
+
 	numJets = vhCand.additionalJets.size()+2;
 	H.dR = deltaR(vhCand.H.jets[0].p4.Eta(),vhCand.H.jets[0].p4.Phi(),vhCand.H.jets[1].p4.Eta(),vhCand.H.jets[1].p4.Phi());
 	H.dPhi = deltaPhi(vhCand.H.jets[0].p4.Phi(),vhCand.H.jets[1].p4.Phi());
@@ -2233,25 +2303,30 @@ double MyWeight = LumiWeights_.weight( Tnpv );
 	HMETdPhi = fabs( deltaPhi(vhCand.H.p4.Phi(),vhCand.V.mets.at(0).p4.Phi()) ) ;
 //eltaPullAngle = vhCand.H.deltaTheta;
 
+
         deltaPullAngle  =  VHbbCandidateTools::getDeltaTheta(vhCand.H.jets[0],vhCand.H.jets[1]);
         deltaPullAngle2 =  VHbbCandidateTools::getDeltaTheta(vhCand.H.jets[1],vhCand.H.jets[0]);
 	hJets.cosTheta[0]=  vhCand.H.helicities[0];
 	hJets.cosTheta[1]=  vhCand.H.helicities[1];
         } // Higgs Flag
 
+
         V.mass = vhCand.V.p4.M();
         if(isW) V.mass = vhCand.Mt();
         V.pt = vhCand.V.p4.Pt();
-        V.eta = vhCand.V.p4.Eta();
+        V.eta = V.pt>0 ? vhCand.V.p4.Eta() : -99;
         V.phi = vhCand.V.p4.Phi();
         VMt = vhCand.Mt() ;
+
+
+	//cout << "Pos2" << endl;
 
         if(VtypeWithTau==VHbbCandidate::Wtaun)
 	  {
 	    //VTau.mass = vhCand.VTau.p4.M();
 	    VTau.mass = vhCand.MtTau();
 	    VTau.pt = vhCand.VTau.p4.Pt();
-	    VTau.eta = vhCand.VTau.p4.Eta();
+	    VTau.eta = VTau.pt>0 ? vhCand.VTau.p4.Eta() : -99;
 	    VTau.phi = vhCand.VTau.p4.Phi();
 	  }
   
@@ -2268,18 +2343,26 @@ double MyWeight = LumiWeights_.weight( Tnpv );
 	fakeMET.et = 0;
 	fakeMET.phi = 0;
         if( Vtype == VHbbCandidate::Zmumu) {
+
+
  	        TVector3 mu1 = vhCand.V.muons[0].p4.Vect();
 	        TVector3 mu2 = vhCand.V.muons[vhCand.V.secondLepton].p4.Vect();
+
+
 // Not needed with PFMET
 //		mu1.SetMag( mu1.Mag() - vhCand.V.muons[0].emEnergy - vhCand.V.muons[0].hadEnergy);
 //		mu2.SetMag( mu2.Mag() - vhCand.V.muons[1].emEnergy - vhCand.V.muons[1].hadEnergy);
 	        TVector3 sum = vhCand.V.mets.at(0).p4.Vect() + mu1 + mu2;
+
+
+
+
 		fakeMET.et = sum.Pt();
 		fakeMET.phi = sum.Phi();
                 fakeMET.sumet = vhCand.V.mets.at(0).sumEt - mu1.Pt() - mu2.Pt();
          }
 
-
+	//cout << "Pos3" << endl;
 
 	METnoPU.et = iEvent->metNoPU.p4.Pt();
 	METnoPU.phi = iEvent->metNoPU.p4.Phi();
@@ -2319,6 +2402,8 @@ double MyWeight = LumiWeights_.weight( Tnpv );
 	METnoPUtype1p2corr.sumet = iEvent->pfmetNoPUType1p2corr.sumEt;
 	METnoPUtype1p2corr.sig = iEvent->pfmetNoPUType1p2corr.metSig;
     
+	//cout << "Pos4" << endl;
+
     TVector2 METtype1diff_vec2(METtype1diff_mex, METtype1diff_mey);
     METtype1diff.et = METtype1diff_vec2.Mod();
     METtype1diff.phi = METtype1diff_vec2.Phi();
@@ -2345,6 +2430,7 @@ double MyWeight = LumiWeights_.weight( Tnpv );
 	  MHT.sig = iEvent->mht.metSig; 
 	}
  
+
 
         /////////
         // track sharing flags:
@@ -2431,10 +2517,13 @@ double MyWeight = LumiWeights_.weight( Tnpv );
 
 	//Secondary Vertices
 	IVF.reset();
-	nSvs = svc.size();
+	/*nSvs = svc.size();
+	//cout << "Pos5" << endl;
 	const TVector3 recoPv = aux.pvInfo.firstPVInPT2;
 	const math::XYZPoint myPv(recoPv);
 
+	//cout << "Pos6" << endl;
+	
 	//FAKE ERROR MATRIX
 // 	//look here for Matrix filling info http://project-mathlibs.web.cern.ch/project-mathlibs/sw/html/SMatrixDoc.html
 // 	std::vector<double> fillMatrix(6);
@@ -2464,7 +2553,8 @@ double MyWeight = LumiWeights_.weight( Tnpv );
 	  SVH.pt = BCands_H.Pt();
 	  SVH.eta = BCands_H.Eta();
 	  SVH.phi = BCands_H.Phi();
-	}
+	  }*/
+
 
 	//SimBhadron
 	SimBs.reset();
@@ -2486,6 +2576,9 @@ double MyWeight = LumiWeights_.weight( Tnpv );
 	    SimBsH.phi = SimBs_H.Phi();
 	  }
 	}
+
+	//cout << "Pos7" << endl;
+
 
 	//Loop on jets
 	double maxBtag=-99999;
@@ -2554,6 +2647,7 @@ double MyWeight = LumiWeights_.weight( Tnpv );
 	    }
 
             //Loop on Higgs jets
+	//cout << "Pos8" << endl;
 
           if(vhCand.H.HiggsFlag){  
 	    for(unsigned int j=0; j < vhCand.H.jets.size(); j++ ) {
@@ -2712,34 +2806,40 @@ double MyWeight = LumiWeights_.weight( Tnpv );
 	}
 
  if(isMC_)
-{
-        weightTrigMET80 =  triggerWeight.scaleMET80(MET.et);
-        weightTrigMET100 =  triggerWeight.scaleMET80(MET.et);
-        weightTrig2CJet20 = triggerWeight.scale2CentralJet( jet10pt, jet10eta);
-        weightTrigMET150 = triggerWeight.scaleMET150(MET.et);
-        weightTrigMET802CJet= weightTrigMET80 * weightTrig2CJet20;
-        weightTrigMET1002CJet= weightTrigMET100 * weightTrig2CJet20;
-        weightTrig2012DiJet30MHT80=triggerWeight.scaleDiJet30MHT80_2012A(vhCand.V.mets.at(0).p4.Pt()); 
-        weightTrig2012PFMET150=triggerWeight.scalePFMET150_2012AB(vhCand.V.mets.at(0).p4.Pt()); // demonstrated to hold also for RunC (used averaged efficiency)
-        weightTrig2012SumpT100MET100=triggerWeight.scaleSumpT100MET100_2012B(vhCand.V.mets.at(0).p4.Pt()); // demonstrated to hold also for RunC (used averaged efficiency)
-        weightTrig2012APFMET150orDiJetMET=triggerWeight.scalePFMET150orDiJetMET_2012A(vhCand.V.mets.at(0).p4.Pt()); 
-        weightTrig2012BPFMET150orDiJetMET=triggerWeight.scalePFMET150orDiJetMET_2012B(vhCand.V.mets.at(0).p4.Pt()); 
-        weightTrig2012CPFMET150orDiJetMET=triggerWeight.scalePFMET150orDiJetMET_2012C(vhCand.V.mets.at(0).p4.Pt()); 
-
-
-}
-	if( Vtype == VHbbCandidate::Znn ){
-	  nvlep=0;
-	  float weightTrig1 = triggerWeight.scaleMetHLT(vhCand.V.mets.at(0).p4.Pt());
-          weightTrigMETLP = weightTrig1;
-          weightTrig = weightTrigMET150 + weightTrigMET802CJet  - weightTrigMET802CJet*weightTrigMET150;
+   {
+     weightTrigMET80 =  triggerWeight.scaleMET80(MET.et);
+     weightTrigMET100 =  triggerWeight.scaleMET80(MET.et);
+     weightTrig2CJet20 = triggerWeight.scale2CentralJet( jet10pt, jet10eta);
+     weightTrigMET150 = triggerWeight.scaleMET150(MET.et);
+     weightTrigMET802CJet= weightTrigMET80 * weightTrig2CJet20;
+     weightTrigMET1002CJet= weightTrigMET100 * weightTrig2CJet20;
+     weightTrig2012DiJet30MHT80=triggerWeight.scaleDiJet30MHT80_2012A(vhCand.V.mets.at(0).p4.Pt()); 
+     weightTrig2012PFMET150=triggerWeight.scalePFMET150_2012AB(vhCand.V.mets.at(0).p4.Pt()); // demonstrated to hold also for RunC (used averaged efficiency)
+     weightTrig2012SumpT100MET100=triggerWeight.scaleSumpT100MET100_2012B(vhCand.V.mets.at(0).p4.Pt()); // demonstrated to hold also for RunC (used averaged efficiency)
+     weightTrig2012APFMET150orDiJetMET=triggerWeight.scalePFMET150orDiJetMET_2012A(vhCand.V.mets.at(0).p4.Pt()); 
+     weightTrig2012BPFMET150orDiJetMET=triggerWeight.scalePFMET150orDiJetMET_2012B(vhCand.V.mets.at(0).p4.Pt()); 
+     weightTrig2012CPFMET150orDiJetMET=triggerWeight.scalePFMET150orDiJetMET_2012C(vhCand.V.mets.at(0).p4.Pt()); 
      
-//          weightTrig2012A = 
-	}
-      
-        if(weightTrigMay < 0) weightTrigMay=weightTrig;
-        if(weightTrigV4 < 0) weightTrigV4=weightTrig;
-        if(!isMC_)
+     
+   }
+ if( Vtype == VHbbCandidate::Znn ){
+   nvlep=0;
+   float weightTrig1 = triggerWeight.scaleMetHLT(vhCand.V.mets.at(0).p4.Pt());
+   weightTrigMETLP = weightTrig1;
+   weightTrig = weightTrigMET150 + weightTrigMET802CJet  - weightTrigMET802CJet*weightTrigMET150;
+     
+   //          weightTrig2012A = 
+ }
+
+ if (doAllHad_  && Vtype != VHbbCandidate::Znn)
+   continue;
+ else if ( !doAllHad_ && Vtype == VHbbCandidate::Znn)
+   continue;
+
+
+ if(weightTrigMay < 0) weightTrigMay=weightTrig;
+ if(weightTrigV4 < 0) weightTrigV4=weightTrig;
+ if(!isMC_)
         {
          weightTrig = 1.; 
          weightTrigMay = 1.;
@@ -2757,6 +2857,8 @@ double MyWeight = LumiWeights_.weight( Tnpv );
 	 weightTrigMETLP = 1.;
 
         } 
+
+	
 	aLeptons.reset();
 	nalep=0;
 //	   std::cout << "Triggers" << std::endl;
@@ -2821,7 +2923,7 @@ double MyWeight = LumiWeights_.weight( Tnpv );
 	  top.wMass = -99;
 	}
   
-
+	//cout << "Pos9" << endl;
        
 	//FIXME: too much  warnings... figure out why 
 	//         gendrcc=aux.genCCDeltaR(); 
@@ -2886,6 +2988,7 @@ if(genTop.wdau2pt > 0.1)
 	  }
 
 
+
           if  ( aux.mcW[i].momid==-6 && aux.mcW[i].dauid.size()>1 ){
             genTbar.wdau1mass= aux.mcW[i].dauFourMomentum[0].M();
             genTbar.wdau1pt= aux.mcW[i].dauFourMomentum[0].Pt();
@@ -2923,6 +3026,9 @@ if(genW.pt>0)
 	    if (aux.mcW[i].momid!=-99) genW.momid =  aux.mcW[i].momid;
 	  }
 	}
+
+
+
 	// b coming from Higgs
 	for (unsigned int i=0; i<aux.mcB.size(); i++){
 	  if (abs(aux.mcB[i].momid)!=5) {
@@ -2972,7 +3078,6 @@ if( genTbar.bpt>0)
 
 
 
-
 	if (aux.mcH.size()>0) {
 	  genH.mass = aux.mcH[0].p4.M();
 	  genH.pt = aux.mcH[0].p4.Pt();
@@ -2984,7 +3089,7 @@ if(genH.pt>0)
 	  if (aux.mcH[0].momid!=-99) genH.momid =  aux.mcH[0].momid;
 	}
 
-
+	//cout << "Pos10" << endl;
 
 
         WminusMode=-99;
@@ -3055,7 +3160,7 @@ if(genH.pt>0)
         }
         }//HiggsFlag
 
-//	std::cout << "Fill" << std::endl;
+
 	_outTree->Fill();
 
 	}// closed event loop
@@ -3065,6 +3170,10 @@ if(genH.pt>0)
     // close input file
   } // loop on files
      
+
+  count_Q2->Fill(0.5,total_Q2Down);
+  count_Q2->Fill(1.5,total_Q2Nominal);
+  count_Q2->Fill(2.5,total_Q2Up);
   
   std::cout << "Events: " << ievt <<std::endl;
   std::cout << "TotalCount: " << totalcount <<std::endl;

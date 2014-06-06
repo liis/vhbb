@@ -54,7 +54,7 @@ Implementation:
 #define GENPTOLOR(a) TLorentzVector((a).px(), (a).py(), (a).pz(), (a).energy())
 #define GENPTOLORP(a) TLorentzVector((a)->px(), (a)->py(), (a)->pz(), (a)->energy())
 
-
+int nev = 0;
 
 struct CompareJetPtMuons {
   bool operator()( const VHbbEvent::MuonInfo& j1, const  VHbbEvent::MuonInfo& j2 ) const {
@@ -99,12 +99,15 @@ HbbAnalyzerNew::HbbAnalyzerNew(const edm::ParameterSet& iConfig):
   produces<VHbbEvent>();
   produces<VHbbEventAuxInfo>();
 
+  nev = 0;
+
  
 }
 
 
 HbbAnalyzerNew::~HbbAnalyzerNew(){
   
+  cout << "nev " << nev << endl;
   // do anything here that needs to be done at desctruction time
   // (e.g. close files, deallocate resources etc.)
   
@@ -121,7 +124,7 @@ HbbAnalyzerNew::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   using namespace edm;
   using namespace reco;
  
- 
+  nev++;
   // JEC Uncertainty
 
   //  JetCorrectionUncertainty *jecUnc=0;
@@ -1260,27 +1263,27 @@ BTagSFContainer btagSFs;
   }
 
 
-  edm::Handle<edm::View<reco::MET> > patType1CorrectedPFMetJetResDownHandle;
-  iEvent.getByLabel("patType1CorrectedPFMetJetResDown",patType1CorrectedPFMetJetResDownHandle);
-  edm::View<reco::MET> patType1CorrectedPFMetsJetResDown = *patType1CorrectedPFMetJetResDownHandle;
-  if(patType1CorrectedPFMetsJetResDown.size()){
-    metunc.sumEt =(patType1CorrectedPFMetsJetResDown[0]).sumEt();
-    metunc.metSig=metSignificance(& (patType1CorrectedPFMetsJetResDown[0]));
-    metunc.eLong=(patType1CorrectedPFMetsJetResDown[0]).e_longitudinal();
-    metunc.p4=GENPTOLOR((patType1CorrectedPFMetsJetResDown[0]));
-    hbbInfo->metUncInfo.push_back(metunc); 
-  }
+//   edm::Handle<edm::View<reco::MET> > patType1CorrectedPFMetJetResDownHandle;
+//   iEvent.getByLabel("patType1CorrectedPFMetJetResDown",patType1CorrectedPFMetJetResDownHandle);
+//   edm::View<reco::MET> patType1CorrectedPFMetsJetResDown = *patType1CorrectedPFMetJetResDownHandle;
+//   if(patType1CorrectedPFMetsJetResDown.size()){
+//     metunc.sumEt =(patType1CorrectedPFMetsJetResDown[0]).sumEt();
+//     metunc.metSig=metSignificance(& (patType1CorrectedPFMetsJetResDown[0]));
+//     metunc.eLong=(patType1CorrectedPFMetsJetResDown[0]).e_longitudinal();
+//     metunc.p4=GENPTOLOR((patType1CorrectedPFMetsJetResDown[0]));
+//     hbbInfo->metUncInfo.push_back(metunc); 
+//   }
 
-  edm::Handle<edm::View<reco::MET> > patType1CorrectedPFMetJetResUpHandle;
-  iEvent.getByLabel("patType1CorrectedPFMetJetResUp",patType1CorrectedPFMetJetResUpHandle);
-  edm::View<reco::MET> patType1CorrectedPFMetsJetResUp = *patType1CorrectedPFMetJetResUpHandle;
-  if(patType1CorrectedPFMetsJetResUp.size()){
-    metunc.sumEt =(patType1CorrectedPFMetsJetResUp[0]).sumEt();
-    metunc.metSig=metSignificance(& (patType1CorrectedPFMetsJetResUp[0]));
-    metunc.eLong=(patType1CorrectedPFMetsJetResUp[0]).e_longitudinal();
-    metunc.p4=GENPTOLOR((patType1CorrectedPFMetsJetResUp[0]));
-    hbbInfo->metUncInfo.push_back(metunc); 
-  }
+//   edm::Handle<edm::View<reco::MET> > patType1CorrectedPFMetJetResUpHandle;
+//   iEvent.getByLabel("patType1CorrectedPFMetJetResUp",patType1CorrectedPFMetJetResUpHandle);
+//   edm::View<reco::MET> patType1CorrectedPFMetsJetResUp = *patType1CorrectedPFMetJetResUpHandle;
+//   if(patType1CorrectedPFMetsJetResUp.size()){
+//     metunc.sumEt =(patType1CorrectedPFMetsJetResUp[0]).sumEt();
+//     metunc.metSig=metSignificance(& (patType1CorrectedPFMetsJetResUp[0]));
+//     metunc.eLong=(patType1CorrectedPFMetsJetResUp[0]).e_longitudinal();
+//     metunc.p4=GENPTOLOR((patType1CorrectedPFMetsJetResUp[0]));
+//     hbbInfo->metUncInfo.push_back(metunc); 
+//   }
 
 
   edm::Handle<edm::View<reco::MET> > patType1CorrectedPFMetUnclusteredEnDownHandle;
@@ -1400,27 +1403,27 @@ BTagSFContainer btagSFs;
   }
 
 
-  edm::Handle<edm::View<reco::MET> > patType1p2CorrectedPFMetJetResDownHandle;
-  iEvent.getByLabel("patType1p2CorrectedPFMetJetResDown",patType1p2CorrectedPFMetJetResDownHandle);
-  edm::View<reco::MET> patType1p2CorrectedPFMetsJetResDown = *patType1p2CorrectedPFMetJetResDownHandle;
-  if(patType1p2CorrectedPFMetsJetResDown.size()){
-    metunc.sumEt =(patType1p2CorrectedPFMetsJetResDown[0]).sumEt();
-    metunc.metSig=metSignificance(& (patType1p2CorrectedPFMetsJetResDown[0]));
-    metunc.eLong=(patType1p2CorrectedPFMetsJetResDown[0]).e_longitudinal();
-    metunc.p4=GENPTOLOR((patType1p2CorrectedPFMetsJetResDown[0]));
-    hbbInfo->metUncInfo.push_back(metunc); 
-  }
+ //  edm::Handle<edm::View<reco::MET> > patType1p2CorrectedPFMetJetResDownHandle;
+//   iEvent.getByLabel("patType1p2CorrectedPFMetJetResDown",patType1p2CorrectedPFMetJetResDownHandle);
+//   edm::View<reco::MET> patType1p2CorrectedPFMetsJetResDown = *patType1p2CorrectedPFMetJetResDownHandle;
+//   if(patType1p2CorrectedPFMetsJetResDown.size()){
+//     metunc.sumEt =(patType1p2CorrectedPFMetsJetResDown[0]).sumEt();
+//     metunc.metSig=metSignificance(& (patType1p2CorrectedPFMetsJetResDown[0]));
+//     metunc.eLong=(patType1p2CorrectedPFMetsJetResDown[0]).e_longitudinal();
+//     metunc.p4=GENPTOLOR((patType1p2CorrectedPFMetsJetResDown[0]));
+//     hbbInfo->metUncInfo.push_back(metunc); 
+//   }
 
-  edm::Handle<edm::View<reco::MET> > patType1p2CorrectedPFMetJetResUpHandle;
-  iEvent.getByLabel("patType1p2CorrectedPFMetJetResUp",patType1p2CorrectedPFMetJetResUpHandle);
-  edm::View<reco::MET> patType1p2CorrectedPFMetsJetResUp = *patType1p2CorrectedPFMetJetResUpHandle;
-  if(patType1p2CorrectedPFMetsJetResUp.size()){
-    metunc.sumEt =(patType1p2CorrectedPFMetsJetResUp[0]).sumEt();
-    metunc.metSig=metSignificance(& (patType1p2CorrectedPFMetsJetResUp[0]));
-    metunc.eLong=(patType1p2CorrectedPFMetsJetResUp[0]).e_longitudinal();
-    metunc.p4=GENPTOLOR((patType1p2CorrectedPFMetsJetResUp[0]));
-    hbbInfo->metUncInfo.push_back(metunc); 
-  }
+//   edm::Handle<edm::View<reco::MET> > patType1p2CorrectedPFMetJetResUpHandle;
+//   iEvent.getByLabel("patType1p2CorrectedPFMetJetResUp",patType1p2CorrectedPFMetJetResUpHandle);
+//   edm::View<reco::MET> patType1p2CorrectedPFMetsJetResUp = *patType1p2CorrectedPFMetJetResUpHandle;
+//   if(patType1p2CorrectedPFMetsJetResUp.size()){
+//     metunc.sumEt =(patType1p2CorrectedPFMetsJetResUp[0]).sumEt();
+//     metunc.metSig=metSignificance(& (patType1p2CorrectedPFMetsJetResUp[0]));
+//     metunc.eLong=(patType1p2CorrectedPFMetsJetResUp[0]).e_longitudinal();
+//     metunc.p4=GENPTOLOR((patType1p2CorrectedPFMetsJetResUp[0]));
+//     hbbInfo->metUncInfo.push_back(metunc); 
+//   }
 
 
   edm::Handle<edm::View<reco::MET> > patType1p2CorrectedPFMetUnclusteredEnDownHandle;

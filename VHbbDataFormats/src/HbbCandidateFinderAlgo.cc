@@ -59,7 +59,7 @@ VHbbCandidate HbbCandidateFinderAlgo::changeHiggs(bool useHighestPtHiggs , const
 
 
 
-void HbbCandidateFinderAlgo::run (const VHbbEvent* event, std::vector<VHbbCandidate>  & candidates,const VHbbEventAuxInfo & aux, bool isZbbHbb=false){
+void HbbCandidateFinderAlgo::run (const VHbbEvent* event, std::vector<VHbbCandidate>  & candidates,const VHbbEventAuxInfo & aux){
   //
   // search for leptons
   //
@@ -259,6 +259,8 @@ void HbbCandidateFinderAlgo::run (const VHbbEvent* event, std::vector<VHbbCandid
    }	 
    */
 
+    
+
   if (candidates.size()!=0 ) {
     candidates[0].candidateTypeWithTau = candidates[0].candidateType;
    return;
@@ -269,20 +271,10 @@ void HbbCandidateFinderAlgo::run (const VHbbEvent* event, std::vector<VHbbCandid
   if ( ok == true or tauOk ){
     result.setCandidateType(ok?VHbbCandidate::Znn:VHbbCandidate::Wtaun);
     result.candidateTypeWithTau = tauOk?VHbbCandidate::Wtaun:VHbbCandidate::Znn;
-   if(tauOk)  result.VTau = tauResult.V;    
+    if(tauOk)  result.VTau = tauResult.V;    
     candidates.push_back(result);
+    
   }
-	
-	// ZbbHbb
-	if (isZbbHbb)
-	{
-		result = selector.getHZbbCandidate(temp,ok);
-		if (ok==true){
-		  result.setCandidateType(VHbbCandidate::Zbb);
-			candidates.push_back(result);
-		}
-	}
-	
   return;
 }
 

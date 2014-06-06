@@ -11,7 +11,7 @@ class HbbCandidateFinderAlgo {
   explicit HbbCandidateFinderAlgo(bool verbose, float jetPt, bool useH): verbose_(verbose), jetPtThreshold(jetPt),useHighestPtHiggs_(useH) {}
 
 
-  void run (const VHbbEvent*, std::vector<VHbbCandidate>  &,const VHbbEventAuxInfo & aux, bool isZbbHbb);
+  void run (const VHbbEvent*, std::vector<VHbbCandidate>  &,const VHbbEventAuxInfo & aux);
 
  VHbbCandidate changeHiggs(bool useHighestPtHiggs , const VHbbCandidate & old);
 
